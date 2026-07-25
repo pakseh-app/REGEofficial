@@ -1,0 +1,70 @@
+.topbar{
+
+    position:sticky;
+    top:0;
+
+    z-index:100;
+
+    height:70px;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:0 18px;
+
+    background:rgba(10,15,30,.75);
+
+    backdrop-filter:blur(18px);
+
+    border-bottom:1px solid rgba(255,255,255,.08);
+
+}
+
+.logo{
+
+    font-size:18px;
+
+    font-weight:700;
+
+    background:linear-gradient(
+        90deg,
+        #A855F7,
+        #EC4899,
+        #3B82F6
+    );
+
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+
+}
+
+.icon-button{
+
+    width:42px;
+
+    height:42px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:transparent;
+
+    color:white;
+
+    cursor:pointer;
+
+    font-size:20px;
+
+    transition:.25s;
+
+}
+
+.icon-button:hover{
+
+    background:rgba(255,255,255,.08);
+
+}

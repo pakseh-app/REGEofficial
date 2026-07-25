@@ -1,0 +1,23 @@
+.page-title{
+
+    font-size:28px;
+
+    margin-bottom:25px;
+
+}
+
+.card{
+
+    background:var(--bg-card);
+
+    border:1px solid var(--border);
+
+    border-radius:var(--radius);
+
+    padding:25px;
+
+    backdrop-filter:blur(15px);
+
+    box-shadow:var(--shadow);
+
+}
