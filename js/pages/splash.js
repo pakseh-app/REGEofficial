@@ -15,11 +15,15 @@ export function renderSplash() {
             </div>
 
             <h1 class="logo-title">
+
                 REGE Official
+
             </h1>
 
             <p class="logo-subtitle">
+
                 Komunitas Digital Karang Taruna
+
             </p>
 
         </div>
@@ -30,8 +34,18 @@ export function renderSplash() {
 
     setTimeout(() => {
 
-        navigate("login");
+        const isLogin = localStorage.getItem("isLogin");
 
-    },2500);
+        if (isLogin === "true") {
+
+            navigate("home");
+
+        } else {
+
+            navigate("login");
+
+        }
+
+    }, 2500);
 
 }

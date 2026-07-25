@@ -46,15 +46,18 @@ export function renderLogin() {
 
     `;
 
-    // Tombol Login (sementara langsung ke Home)
+    // Tombol Login
 
-    document
-        .getElementById("loginBtn")
-        .addEventListener("click", () => {
+document
+    .getElementById("loginBtn")
+    .addEventListener("click", () => {
 
-            navigate("home");
+        // Simpan status login
+        localStorage.setItem("isLogin", "true");
 
-        });
+        navigate("home");
+
+    });
 
     // Link Register
 

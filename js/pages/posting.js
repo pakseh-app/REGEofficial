@@ -1,6 +1,9 @@
 import { Navbar } from "../components/navbar.js";
 import { BottomNav } from "../components/bottomNav.js";
 import { renderSidebar } from "../components/sidebar.js";
+import { addPost } from "../data/posts.js";
+import { currentUser } from "../data/currentUser.js";
+import { navigate } from "../router.js";
 
 export function renderPosting() {
 
@@ -33,7 +36,9 @@ export function renderPosting() {
                     placeholder="Apa yang sedang kamu pikirkan?"></textarea>
 
                 <button id="publishBtn">
+
                     Publish
+
                 </button>
 
             </div>
@@ -57,8 +62,17 @@ export function renderPosting() {
 
         if (!file) return;
 
-        preview.src = URL.createObjectURL(file);
-        preview.style.display = "block";
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+
+            preview.src = e.target.result;
+
+            preview.style.display = "block";
+
+        };
+
+        reader.readAsDataURL(file);
 
     });
 
@@ -74,7 +88,39 @@ export function renderPosting() {
 
         }
 
-        alert("Posting berhasil!\n\nPada sprint berikutnya posting akan langsung masuk ke Home Feed.");
+        const avatar =
+            localStorage.getItem("profileAvatar") ||
+            currentUser.avatar;
+
+        const nama =
+            localStorage.getItem("profileName") ||
+            currentUser.fullName;
+
+        addPost({
+
+            id: Date.now(),
+
+            name: nama,
+
+            avatar: avatar,
+
+            image: preview.src,
+
+            caption: caption,
+
+            time: "Baru saja",
+
+            likes: 0,
+
+            comments: [],
+
+            isMe: true
+
+        });
+
+        alert("Posting berhasil.");
+
+        navigate("home");
 
     });
 

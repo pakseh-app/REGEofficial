@@ -1,64 +1,71 @@
-import { posts } from "../data/dummy.js";
+import { posts } from "../data/posts.js";
 
-export function PostCard(){
+export function PostCard() {
 
-    // ambil posting buatan user
-    const myPosts = JSON.parse(
-        localStorage.getItem("posts") || "[]"
-    );
+    return posts.map(post => {
 
-    // gabungkan posting baru + dummy
-    const allPosts = [...myPosts, ...posts];
+        // Gunakan avatar & nama profil jika ini postingan milik user
+        let avatar = post.avatar;
+        let name = post.name;
 
-    return allPosts.map((post,index)=>`
+        if (post.isMe) {
 
-    <div class="post">
+            avatar = localStorage.getItem("profileAvatar") || avatar;
 
-        <div class="post-header">
+            name = localStorage.getItem("profileName") || name;
 
-            <img src="${post.avatar}">
+        }
 
-            <div>
+        return `
 
-                <h4>${post.name}</h4>
+        <div class="post">
 
-                <small>${post.time}</small>
+            <div class="post-header">
+
+                <img
+                    src="${avatar}"
+                    class="avatar">
+
+                <div>
+
+                    <h4>${name}</h4>
+
+                    <small>${post.time}</small>
+
+                </div>
+
+            </div>
+
+            <p>${post.caption}</p>
+
+            <img
+                src="${post.image}"
+                class="post-image">
+
+            <div class="actions">
+
+                <button
+                    class="like-btn"
+                    data-id="${post.id}">
+
+                    ❤️ <span>${post.likes}</span>
+
+                </button>
+
+                <button
+                    class="comment-btn"
+                    data-id="${post.id}">
+
+                    💬 <span>${post.comments.length}</span>
+
+                </button>
 
             </div>
 
         </div>
 
-        <p>
+        `;
 
-            ${post.caption}
-
-        </p>
-
-        <img
-            class="post-image"
-            src="${post.image}">
-
-        <div class="actions">
-
-            <button
-                class="like-btn">
-
-                ❤️ <span>${post.likes}</span>
-
-            </button>
-
-            <button
-                class="comment-btn"
-                data-id="${index}">
-
-                💬 <span>${post.comments}</span>
-
-            </button>
-
-        </div>
-
-    </div>
-
-    `).join("");
+    }).join("");
 
 }

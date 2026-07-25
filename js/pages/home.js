@@ -6,6 +6,8 @@ import { BottomNav } from "../components/bottomNav.js";
 import { renderSidebar } from "../components/sidebar.js";
 import { CommentModal } from "../components/commentModal.js";
 
+import { posts, savePosts } from "../data/posts.js";
+
 export function renderHome() {
 
     document.getElementById("app").innerHTML = `
@@ -36,73 +38,117 @@ export function renderHome() {
 
     renderSidebar();
 
-    // ===========================
+    // ==========================
     // LIKE
-    // ===========================
+    // ==========================
 
     document.querySelectorAll(".like-btn").forEach(btn => {
 
-        btn.onclick = () => {
+        btn.addEventListener("click", () => {
 
-            const jumlah = btn.querySelector("span");
+            const id = Number(btn.dataset.id);
 
-            let like = parseInt(jumlah.textContent);
+            const post = posts.find(p => p.id === id);
 
-            if(btn.classList.contains("liked")){
+            if (!post) return;
 
-                like--;
+            if (btn.classList.contains("liked")) {
+
+                post.likes--;
 
                 btn.classList.remove("liked");
 
-            }else{
+            } else {
 
-                like++;
+                post.likes++;
 
                 btn.classList.add("liked");
 
             }
 
-            jumlah.textContent = like;
+            btn.querySelector("span").textContent = post.likes;
 
-        };
+            savePosts(posts);
+
+        });
 
     });
 
-    // ===========================
+    // ==========================
     // KOMENTAR
-    // ===========================
+    // ==========================
 
     const modal = document.getElementById("commentModal");
 
-    document.querySelectorAll(".comment-btn").forEach(btn=>{
+    const commentList = document.getElementById("commentList");
 
-        btn.onclick = ()=>{
+    const commentInput = document.getElementById("commentText");
+
+    const sendButton = document.getElementById("sendComment");
+
+    const closeButton = document.getElementById("closeComment");
+
+    let currentPost = null;
+
+    document.querySelectorAll(".comment-btn").forEach(btn => {
+
+        btn.addEventListener("click", () => {
+
+            const id = Number(btn.dataset.id);
+
+            currentPost = posts.find(p => p.id === id);
+
+            if (!currentPost) return;
+
+            commentList.innerHTML = "";
+
+            currentPost.comments.forEach(comment => {
+
+                commentList.innerHTML += `
+
+                    <div class="comment-item">
+
+                        <b>${comment.name}</b>
+
+                        <p>${comment.text}</p>
+
+                    </div>
+
+                `;
+
+            });
 
             modal.classList.add("show");
 
-            modal.dataset.button = btn.dataset.id;
-
-        };
+        });
 
     });
 
-    document.getElementById("closeComment").onclick = ()=>{
+    closeButton.addEventListener("click", () => {
 
         modal.classList.remove("show");
 
-    };
+    });
 
-    document.getElementById("sendComment").onclick = ()=>{
+    sendButton.addEventListener("click", () => {
 
-        const input = document.getElementById("commentText");
+        if (!currentPost) return;
 
-        const text = input.value.trim();
+        const text = commentInput.value.trim();
 
-        if(text==="") return;
+        if (text === "") return;
 
-        const list = document.getElementById("commentList");
+        currentPost.comments.push({
 
-        list.innerHTML += `
+            name: "Anda",
+
+            text: text
+
+        });
+
+        savePosts(posts);
+
+        commentList.innerHTML += `
 
             <div class="comment-item">
 
@@ -114,20 +160,20 @@ export function renderHome() {
 
         `;
 
-        // tambah counter komentar
-
-        const id = modal.dataset.button;
-
-        const tombol = document.querySelector(
-            '.comment-btn[data-id="'+id+'"] span'
+        const counter = document.querySelector(
+            '.comment-btn[data-id="' + currentPost.id + '"]'
         );
 
-        tombol.textContent = parseInt(tombol.textContent)+1;
+        if (counter) {
 
-        input.value="";
+            counter.innerHTML = `💬 <span>${currentPost.comments.length}</span>`;
 
-        list.scrollTop=list.scrollHeight;
+        }
 
-    };
+        commentInput.value = "";
+
+        commentList.scrollTop = commentList.scrollHeight;
+
+    });
 
 }
