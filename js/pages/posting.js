@@ -36,9 +36,7 @@ export function renderPosting() {
                     placeholder="Apa yang sedang kamu pikirkan?"></textarea>
 
                 <button id="publishBtn">
-
                     Publish
-
                 </button>
 
             </div>
@@ -78,7 +76,8 @@ export function renderPosting() {
 
     document.getElementById("publishBtn").addEventListener("click", () => {
 
-        const caption = document.getElementById("captionInput").value.trim();
+        const caption =
+            document.getElementById("captionInput").value.trim();
 
         if (!preview.src || caption === "") {
 
@@ -108,7 +107,7 @@ export function renderPosting() {
 
             caption: caption,
 
-            time: "Baru saja",
+            time: Date.now(),
 
             likes: 0,
 
@@ -117,8 +116,6 @@ export function renderPosting() {
             isMe: true
 
         });
-
-        alert("Posting berhasil.");
 
         navigate("home");
 

@@ -5,6 +5,7 @@ import { PostCard } from "../components/postCard.js";
 import { BottomNav } from "../components/bottomNav.js";
 import { renderSidebar } from "../components/sidebar.js";
 import { CommentModal } from "../components/commentModal.js";
+import { ImagePreview } from "../components/imagePreview.js";
 
 import { posts, savePosts } from "../data/posts.js";
 
@@ -27,6 +28,8 @@ export function renderHome() {
             ${PostCard()}
 
         </main>
+
+        ${ImagePreview()}
 
         ${BottomNav()}
 
@@ -175,5 +178,42 @@ export function renderHome() {
         commentList.scrollTop = commentList.scrollHeight;
 
     });
+
+
+// =========================
+// IMAGE PREVIEW
+// =========================
+
+const preview = document.getElementById("imagePreview");
+const previewImg = document.getElementById("previewImg");
+const closePreview = document.getElementById("closePreview");
+
+document.querySelectorAll(".post-image").forEach(img => {
+
+    img.addEventListener("click", () => {
+
+        preview.classList.add("show");
+
+        previewImg.src = img.src;
+
+    });
+
+});
+
+closePreview.addEventListener("click", () => {
+
+    preview.classList.remove("show");
+
+});
+
+preview.addEventListener("click", (e) => {
+
+    if (e.target === preview) {
+
+        preview.classList.remove("show");
+
+    }
+
+});
 
 }

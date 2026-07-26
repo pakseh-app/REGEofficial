@@ -2,17 +2,29 @@ import { navigate } from "../router.js";
 
 export function renderSplash() {
 
+    const nama =
+        localStorage.getItem("profileName") || "Sahabat REGE";
+
+    const isLogin =
+        localStorage.getItem("isLogin");
+
     document.getElementById("app").innerHTML = `
 
     <div class="splash-screen">
+
+        <div class="bg-blur blur1"></div>
+        <div class="bg-blur blur2"></div>
 
         <div class="logo-wrapper">
 
             <div class="logo-circle">
 
-                <i class="fa-solid fa-users"></i>
+    <img
+        src="assets/logo-rege.png"
+        class="logo-image"
+        alt="REGE Official">
 
-            </div>
+</div>
 
             <h1 class="logo-title">
 
@@ -26,6 +38,29 @@ export function renderSplash() {
 
             </p>
 
+            ${
+                isLogin === "true"
+                    ? `<p class="welcome-text">
+                        Selamat Datang,
+                        <b>${nama}</b> 👋
+                    </p>`
+                    : ""
+            }
+
+            <div class="loading">
+
+                <span></span>
+                <span></span>
+                <span></span>
+
+            </div>
+
+            <p class="loading-text">
+
+                Memuat komunitas...
+
+            </p>
+
         </div>
 
     </div>
@@ -33,8 +68,6 @@ export function renderSplash() {
     `;
 
     setTimeout(() => {
-
-        const isLogin = localStorage.getItem("isLogin");
 
         if (isLogin === "true") {
 
