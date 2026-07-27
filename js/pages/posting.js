@@ -2,7 +2,7 @@ import { Navbar } from "../components/navbar.js";
 import { BottomNav } from "../components/bottomNav.js";
 import { renderSidebar } from "../components/sidebar.js";
 import { addPost } from "../data/posts.js";
-import { currentUser } from "../data/currentUser.js";
+import { getCurrentMember, updateMember } from "../data/members.js";
 import { navigate } from "../router.js";
 
 export function renderPosting() {
@@ -53,6 +53,13 @@ export function renderPosting() {
 
     const imageInput = document.getElementById("imageInput");
     const preview = document.getElementById("previewImage");
+    const publishBtn = document.getElementById("publishBtn");
+
+    let isPublishing = false;
+
+    // ==========================
+    // Preview Gambar
+    // ==========================
 
     imageInput.addEventListener("change", () => {
 
@@ -62,10 +69,9 @@ export function renderPosting() {
 
         const reader = new FileReader();
 
-        reader.onload = function (e) {
+        reader.onload = (e) => {
 
             preview.src = e.target.result;
-
             preview.style.display = "block";
 
         };
@@ -74,12 +80,33 @@ export function renderPosting() {
 
     });
 
-    document.getElementById("publishBtn").addEventListener("click", () => {
+    // ==========================
+    // Publish
+    // ==========================
+
+    publishBtn.addEventListener("click", () => {
+
+        if (isPublishing) return;
+
+        const user = getCurrentMember();
+
+        if (!user) {
+
+            alert("Silakan login kembali.");
+
+            navigate("login");
+
+            return;
+
+        }
 
         const caption =
             document.getElementById("captionInput").value.trim();
 
-        if (!preview.src || caption === "") {
+        if (
+            preview.style.display === "none" ||
+            caption === ""
+        ) {
 
             alert("Pilih gambar dan isi caption.");
 
@@ -87,21 +114,21 @@ export function renderPosting() {
 
         }
 
-        const avatar =
-            localStorage.getItem("profileAvatar") ||
-            currentUser.avatar;
+        isPublishing = true;
 
-        const nama =
-            localStorage.getItem("profileName") ||
-            currentUser.fullName;
+        publishBtn.disabled = true;
+
+        publishBtn.textContent = "Memposting...";
 
         addPost({
 
             id: Date.now(),
 
-            name: nama,
+            memberId: user.id,
 
-            avatar: avatar,
+            name: user.fullName,
+
+            avatar: user.avatar,
 
             image: preview.src,
 
@@ -111,12 +138,30 @@ export function renderPosting() {
 
             likes: 0,
 
+            likedBy: [],
+
             comments: [],
 
             isMe: true
 
         });
 
+        // Tambah jumlah posting user
+        updateMember(user.id, {
+
+            posting: (user.posting || 0) + 1
+
+        });
+
+        // Update currentUser agar ikut sinkron
+        user.posting = (user.posting || 0) + 1;
+
+        localStorage.setItem(
+            "currentUser",
+            JSON.stringify(user)
+        );
+
+        // Langsung kembali ke beranda
         navigate("home");
 
     });

@@ -1,6 +1,14 @@
 import { Navbar } from "../components/navbar.js";
 import { BottomNav } from "../components/bottomNav.js";
 import { renderSidebar } from "../components/sidebar.js";
+import { updateMember } from "../data/members.js";
+import { CropModal } from "../components/cropModal.js";
+
+import {
+    currentUser,
+    loadCurrentUser,
+    saveCurrentUser
+} from "../data/currentUser.js";
 
 export function renderProfile() {
 
@@ -89,76 +97,150 @@ export function renderProfile() {
 
         </main>
 
-        ${BottomNav()}
+                ${BottomNav()}
+
+        ${CropModal()}
 
     </div>
 
     `;
 
     renderSidebar();
+    loadCurrentUser();
 
-    // ===============================
-    // LOAD FOTO PROFIL
-    // ===============================
+// ===============================
+// LOAD FOTO PROFIL
+// ===============================
 
-    const avatar = document.getElementById("profileAvatar");
+const avatar = document.getElementById("profileAvatar");
 
-    const savedAvatar = localStorage.getItem("profileAvatar");
+avatar.src = currentUser.avatar;
 
-    if(savedAvatar){
+// ===============================
+// CROPPER
+// ===============================
 
-        avatar.src = savedAvatar;
+let cropper = null;
+
+const cropModal =
+    document.getElementById("cropModal");
+
+const cropImage =
+    document.getElementById("cropImage");
+
+const saveCrop =
+    document.getElementById("saveCrop");
+
+const cancelCrop =
+    document.getElementById("cancelCrop");
+
+// ===============================
+// GANTI FOTO
+// ===============================
+
+    document
+    .getElementById("photoInput")
+    .addEventListener("change", function(){
+
+        const file = this.files[0];
+
+        if(!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = function(e){
+
+            cropModal.classList.add("show");
+
+            cropImage.src = e.target.result;
+
+            if(cropper){
+
+                cropper.destroy();
+
+            }
+
+            cropper = new Cropper(cropImage,{
+
+                aspectRatio:1,
+
+                viewMode:1,
+
+                dragMode:"move",
+
+                autoCropArea:1,
+
+                responsive:true,
+
+                background:false
+
+            });
+
+        };
+
+        reader.readAsDataURL(file);
+
+    });
+
+cancelCrop.onclick = ()=>{
+
+    cropModal.classList.remove("show");
+
+    if(cropper){
+
+        cropper.destroy();
+
+        cropper = null;
 
     }
 
-    // ===============================
-    // GANTI FOTO
-    // ===============================
+};
 
-    document
-        .getElementById("photoInput")
-        .addEventListener("change", function(){
+saveCrop.onclick = ()=>{
 
-            const file = this.files[0];
+    if(!cropper) return;
 
-            if(!file) return;
+    const canvas = cropper.getCroppedCanvas({
 
-            const reader = new FileReader();
+        width:500,
 
-            reader.onload = function(e){
+        height:500
 
-                avatar.src = e.target.result;
+    });
 
-                localStorage.setItem(
-                    "profileAvatar",
-                    e.target.result
-                );
+    const image = canvas.toDataURL("image/png");
 
-            };
+    avatar.src = image;
 
-            reader.readAsDataURL(file);
+    currentUser.avatar = image;
 
-        });
+    saveCurrentUser();
+
+
+
+    updateMember(currentUser.id,{
+
+        avatar:image
+
+    });
+
+    cropModal.classList.remove("show");
+
+    cropper.destroy();
+
+    cropper = null;
+
+};
 
     // ===============================
     // EDIT NAMA
     // ===============================
 
-    const savedName = localStorage.getItem("profileName");
+    document.getElementById("profileName").textContent =
+    currentUser.fullName;
 
-    if(savedName){
-
-        document.getElementById("profileName").textContent = savedName;
-
-    }
-
-    const savedBio = localStorage.getItem("profileBio");
-
-    if(savedBio){
-
-        document.getElementById("profileBio").textContent = savedBio;
-
-    }
+    document.getElementById("profileBio").textContent =
+    currentUser.bio;
 
     document
         .getElementById("editProfile")
@@ -180,15 +262,19 @@ export function renderProfile() {
 
             document.getElementById("profileBio").textContent = bio;
 
-            localStorage.setItem(
-                "profileName",
-                nama
-            );
+            currentUser.fullName = nama;
 
-            localStorage.setItem(
-                "profileBio",
-                bio
-            );
+currentUser.bio = bio;
+
+saveCurrentUser();
+
+updateMember(currentUser.id,{
+
+    fullName:nama,
+
+    bio:bio
+
+});
 
         };
 

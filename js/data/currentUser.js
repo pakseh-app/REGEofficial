@@ -1,17 +1,59 @@
-export const currentUser = {
+export let currentUser = {
 
-    id: "RG250001",
+    id: "",
 
-    fullName: "Mas Bahlul",
+    fullName: "",
 
-    username: "bahlul",
+    username: "",
 
-    phone: "08123456789",
+    phone: "",
 
-    avatar: "https://i.pravatar.cc/150?img=12",
+    avatar: "assets/default-avatar.png",
+
+    bio: "Selamat datang di REGE Official 🚀",
+
+    jabatan: "Anggota",
 
     role: "Member",
 
-    jabatan: "Anggota"
+    hadir: 0,
+
+    tidakHadir: 0,
+
+    terlambat: 0
 
 };
+
+export function setCurrentUser(user){
+
+    currentUser = {
+
+        ...user
+
+    };
+
+}
+
+export function saveCurrentUser(){
+
+    localStorage.setItem(
+
+        "currentUser",
+
+        JSON.stringify(currentUser)
+
+    );
+
+}
+
+export function loadCurrentUser(){
+
+    const data = localStorage.getItem("currentUser");
+
+    if(data){
+
+        currentUser = JSON.parse(data);
+
+    }
+
+}

@@ -1,46 +1,59 @@
 import { navigate } from "../router.js";
+import { getCurrentMember } from "../data/members.js";
 
 const menus = [
+
     {
-        id: "home",
-        icon: "fa-solid fa-house",
-        text: "Home"
+        id: "attendance",
+        icon: "fa-solid fa-calendar-check",
+        text: "Absensi"
     },
+
     {
-        id: "search",
-        icon: "fa-solid fa-magnifying-glass",
-        text: "Search"
+        id: "finance",
+        icon: "fa-solid fa-wallet",
+        text: "Keuangan"
     },
+
     {
-        id: "posting",
-        icon: "fa-solid fa-square-plus",
-        text: "Posting"
+        id: "position",
+        icon: "fa-solid fa-user-tie",
+        text: "Jabatan"
     },
-    {
-        id: "chat",
-        icon: "fa-solid fa-comments",
-        text: "Chat"
-    },
-    {
-        id: "profile",
-        icon: "fa-solid fa-user",
-        text: "Profile"
-    },
+
     {
         id: "setting",
         icon: "fa-solid fa-gear",
         text: "Pengaturan"
     },
+
+    {
+        id: "darkmode",
+        icon: "fa-solid fa-moon",
+        text: "Dark Mode"
+    },
+
     {
         id: "logout",
         icon: "fa-solid fa-right-from-bracket",
         text: "Logout"
     }
+
 ];
 
 export function renderSidebar() {
 
     const sidebar = document.getElementById("sidebar");
+
+    const user = getCurrentMember();
+
+    if (!user) {
+
+        navigate("login");
+
+        return;
+
+    }
 
     sidebar.innerHTML = `
 
@@ -51,13 +64,12 @@ export function renderSidebar() {
         <div class="sidebar-header">
 
             <img
-                src="https://i.pravatar.cc/150?img=5"
-                class="sidebar-avatar"
-            >
+                src="${user.avatar}"
+                class="sidebar-avatar">
 
-            <h3>REGE Official</h3>
+            <h3>${user.fullName}</h3>
 
-            <small>@regeofficial</small>
+            <small>${user.jabatan}</small>
 
         </div>
 
@@ -81,9 +93,11 @@ export function renderSidebar() {
 
     `;
 
-    const menuButton = document.getElementById("menuButton");
+    const menuButton =
+        document.getElementById("menuButton");
 
-    const overlay = sidebar.querySelector(".sidebar-overlay");
+    const overlay =
+        sidebar.querySelector(".sidebar-overlay");
 
     menuButton.onclick = () => {
 
@@ -97,16 +111,35 @@ export function renderSidebar() {
 
     };
 
-    sidebar.querySelectorAll(".menu-list li").forEach(item => {
+    sidebar
+        .querySelectorAll(".menu-list li")
+        .forEach(item => {
 
-        item.onclick = () => {
+            item.onclick = () => {
 
-            sidebar.classList.remove("show");
+                sidebar.classList.remove("show");
 
-            navigate(item.dataset.page);
+                const page = item.dataset.page;
 
-        };
+                if (page === "logout") {
 
-    });
+                    if (confirm("Yakin ingin logout?")) {
+
+                        localStorage.removeItem("isLogin");
+                        localStorage.removeItem("currentUser");
+
+                        navigate("login");
+
+                    }
+
+                    return;
+
+                }
+
+                alert("Menu ini masih dalam pengembangan.");
+
+            };
+
+        });
 
 }

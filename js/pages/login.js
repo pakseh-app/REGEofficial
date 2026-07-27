@@ -1,4 +1,9 @@
 import { navigate } from "../router.js";
+import { members } from "../data/members.js";
+import {
+    setCurrentUser,
+    saveCurrentUser
+} from "../data/currentUser.js";
 
 export function renderLogin() {
 
@@ -46,20 +51,53 @@ export function renderLogin() {
 
     `;
 
-    // Tombol Login
+    // ===============================
+    // LOGIN
+    // ===============================
 
-document
-    .getElementById("loginBtn")
-    .addEventListener("click", () => {
+    document
+        .getElementById("loginBtn")
+        .addEventListener("click", () => {
 
-        // Simpan status login
-        localStorage.setItem("isLogin", "true");
+            const username =
+                document.getElementById("username").value.trim();
 
-        navigate("home");
+            const password =
+                document.getElementById("password").value.trim();
 
-    });
+            const user = members.find(member =>
 
-    // Link Register
+                (
+                    member.username === username ||
+                    member.phone === username
+                ) &&
+                member.password === password
+
+            );
+
+            if (!user) {
+
+                alert("Username atau password salah.");
+
+                return;
+
+            }
+
+            // Simpan status login
+            localStorage.setItem("isLogin", "true");
+
+            // Simpan user aktif
+            setCurrentUser(user);
+
+            saveCurrentUser();
+
+            navigate("home");
+
+        });
+
+    // ===============================
+    // REGISTER
+    // ===============================
 
     document
         .getElementById("registerLink")

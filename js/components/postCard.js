@@ -1,4 +1,8 @@
 import { posts } from "../data/posts.js";
+import {
+    getMemberById,
+    getCurrentMember
+} from "../data/members.js";
 
 // ==========================
 // FORMAT WAKTU
@@ -6,7 +10,6 @@ import { posts } from "../data/posts.js";
 
 function formatTime(timestamp) {
 
-    // Untuk data lama yang masih berupa teks
     if (typeof timestamp !== "number") {
 
         return timestamp || "Baru saja";
@@ -39,23 +42,39 @@ function formatTime(timestamp) {
 
 }
 
+// ==========================
+// POST CARD
+// ==========================
+
 export function PostCard() {
+
+    const currentUser = getCurrentMember();
 
     return posts.map(post => {
 
-        // Gunakan avatar & nama terbaru jika posting milik user
         let avatar = post.avatar;
         let name = post.name;
 
-        if (post.isMe) {
+        // Jika posting memiliki memberId,
+        // ambil data terbaru dari members.js
+        if (post.memberId) {
 
-            avatar =
-                localStorage.getItem("profileAvatar") ||
-                avatar;
+            const member = getMemberById(post.memberId);
 
-            name =
-                localStorage.getItem("profileName") ||
-                name;
+            if (member) {
+
+                avatar = member.avatar;
+                name = member.fullName;
+
+            }
+
+        }
+
+        // Untuk kompatibilitas posting lama
+        else if (post.isMe && currentUser) {
+
+            avatar = currentUser.avatar;
+            name = currentUser.fullName;
 
         }
 

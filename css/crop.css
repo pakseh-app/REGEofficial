@@ -1,0 +1,134 @@
+/* ==========================================
+   CROP MODAL
+========================================== */
+
+.crop-modal{
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(0,0,0,.82);
+
+    display:none;
+
+    justify-content:center;
+
+    align-items:center;
+
+    z-index:9999;
+
+    backdrop-filter:blur(10px);
+
+}
+
+.crop-modal.show{
+
+    display:flex;
+
+}
+
+.crop-card{
+
+    width:92%;
+
+    max-width:420px;
+
+    background:#111827;
+
+    border-radius:22px;
+
+    padding:20px;
+
+    border:1px solid rgba(255,255,255,.08);
+
+    box-shadow:
+        0 0 35px rgba(168,85,247,.30);
+
+}
+
+.crop-card h2{
+
+    text-align:center;
+
+    margin-bottom:18px;
+
+    color:white;
+
+    font-size:22px;
+
+}
+
+.crop-image{
+
+    width:100%;
+
+    max-height:420px;
+
+    display:block;
+
+    border-radius:16px;
+
+}
+
+.crop-actions{
+
+    display:flex;
+
+    gap:12px;
+
+    margin-top:20px;
+
+}
+
+.crop-actions button{
+
+    flex:1;
+
+    border:none;
+
+    cursor:pointer;
+
+    border-radius:14px;
+
+    padding:14px;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+#cancelCrop{
+
+    background:#374151;
+
+    color:white;
+
+}
+
+#cancelCrop:hover{
+
+    background:#4B5563;
+
+}
+
+#saveCrop{
+
+    background:linear-gradient(
+        90deg,
+        #A855F7,
+        #EC4899
+    );
+
+    color:white;
+
+}
+
+#saveCrop:hover{
+
+    transform:translateY(-2px);
+
+}

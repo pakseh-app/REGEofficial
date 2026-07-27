@@ -1,4 +1,5 @@
 import { navigate } from "../router.js";
+import { addMember } from "../data/members.js";
 
 export function renderRegister() {
 
@@ -13,20 +14,24 @@ export function renderRegister() {
             <p>Bergabung dengan REGE Official</p>
 
             <input
-                type="text"
-                placeholder="Nama Lengkap">
+    type="text"
+    id="fullname"
+    placeholder="Nama Lengkap">
 
-            <input
-                type="text"
-                placeholder="Username">
+<input
+    type="text"
+    id="username"
+    placeholder="Username">
 
-            <input
-                type="text"
-                placeholder="Nomor HP">
+<input
+    type="text"
+    id="phone"
+    placeholder="Nomor HP">
 
-            <input
-                type="password"
-                placeholder="Password">
+<input
+    type="password"
+    id="password"
+    placeholder="Password">
 
             <button id="registerBtn">
 
@@ -53,14 +58,71 @@ export function renderRegister() {
     `;
 
     document
-        .getElementById("registerBtn")
-        .onclick = () => {
+    .getElementById("registerBtn")
+    .onclick = () => {
 
-            alert("Registrasi berhasil (Dummy)");
+        const fullName =
+            document.getElementById("fullname").value.trim();
 
-            navigate("login");
+        const username =
+            document.getElementById("username").value.trim();
 
-        };
+        const phone =
+            document.getElementById("phone").value.trim();
+
+        const password =
+            document.getElementById("password").value.trim();
+
+        if (
+            fullName === "" ||
+            username === "" ||
+            phone === "" ||
+            password === ""
+        ) {
+
+            alert("Semua data harus diisi.");
+
+            return;
+
+        }
+
+        addMember({
+
+            id: "RG" + Date.now(),
+
+            fullName,
+
+            username,
+
+            phone,
+
+            password,
+
+            avatar: "assets/default-avatar.png",
+
+            bio: "Selamat datang di REGE Official 🚀",
+
+            jabatan: "Anggota",
+
+            role: "Member",
+
+            hadir: 0,
+
+            tidakHadir: 0,
+
+            terlambat: 0,
+
+            posting: 0,
+
+            approved: true
+
+        });
+
+        alert("Registrasi berhasil.");
+
+        navigate("login");
+
+    };
 
     document
         .getElementById("loginLink")
