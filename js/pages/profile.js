@@ -3,6 +3,7 @@ import { BottomNav } from "../components/bottomNav.js";
 import { renderSidebar } from "../components/sidebar.js";
 import { updateMember } from "../data/members.js";
 import { CropModal } from "../components/cropModal.js";
+import { uploadImage } from "../services/cloudinary.js";
 
 import {
     currentUser,
@@ -196,39 +197,89 @@ cancelCrop.onclick = ()=>{
 
 };
 
-saveCrop.onclick = ()=>{
+saveCrop.onclick = async () => {
 
-    if(!cropper) return;
+    if (!cropper) return;
 
-    const canvas = cropper.getCroppedCanvas({
+    try {
 
-        width:500,
+        saveCrop.disabled = true;
 
-        height:500
+        saveCrop.textContent = "Mengupload...";
 
-    });
+        const canvas = cropper.getCroppedCanvas({
 
-    const image = canvas.toDataURL("image/png");
+            width: 500,
 
-    avatar.src = image;
+            height: 500
 
-    currentUser.avatar = image;
+        });
 
-    saveCurrentUser();
+        // Canvas -> Blob
+        const blob = await new Promise(resolve =>
 
+            canvas.toBlob(resolve, "image/webp", 0.9)
 
+        );
 
-    updateMember(currentUser.id,{
+        // Blob -> File
+        const file = new File(
 
-        avatar:image
+            [blob],
 
-    });
+            "avatar.webp",
 
-    cropModal.classList.remove("show");
+            {
 
-    cropper.destroy();
+                type: "image/webp"
 
-    cropper = null;
+            }
+
+        );
+
+        // Upload ke Cloudinary
+        const imageUrl = await uploadImage(file);
+
+        // Update tampilan
+        avatar.src = imageUrl;
+
+        // Simpan current user
+        currentUser.avatar = imageUrl;
+
+        saveCurrentUser();
+
+        // Update member
+        updateMember(currentUser.id, {
+
+            avatar: imageUrl
+
+        });
+
+        // Tutup modal
+        cropModal.classList.remove("show");
+
+        cropper.destroy();
+
+        cropper = null;
+
+        // Reset tombol
+        saveCrop.disabled = false;
+
+        saveCrop.textContent = "Simpan";
+
+        alert("✅ Foto profil berhasil diperbarui.");
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Upload avatar gagal.");
+
+        saveCrop.disabled = false;
+
+        saveCrop.textContent = "Simpan";
+
+    }
 
 };
 
