@@ -3,6 +3,7 @@ import { BottomNav } from "../components/bottomNav.js";
 import { renderSidebar } from "../components/sidebar.js";
 import { addPost } from "../data/posts.js";
 import { getCurrentMember, updateMember } from "../data/members.js";
+import { uploadImage } from "../services/cloudinary.js";
 import { navigate } from "../router.js";
 
 export function renderPosting() {
@@ -36,7 +37,9 @@ export function renderPosting() {
                     placeholder="Apa yang sedang kamu pikirkan?"></textarea>
 
                 <button id="publishBtn">
+
                     Publish
+
                 </button>
 
             </div>
@@ -58,7 +61,7 @@ export function renderPosting() {
     let isPublishing = false;
 
     // ==========================
-    // Preview Gambar
+    // Preview
     // ==========================
 
     imageInput.addEventListener("change", () => {
@@ -67,16 +70,9 @@ export function renderPosting() {
 
         if (!file) return;
 
-        const reader = new FileReader();
+        preview.src = URL.createObjectURL(file);
 
-        reader.onload = (e) => {
-
-            preview.src = e.target.result;
-            preview.style.display = "block";
-
-        };
-
-        reader.readAsDataURL(file);
+        preview.style.display = "block";
 
     });
 
@@ -84,7 +80,7 @@ export function renderPosting() {
     // Publish
     // ==========================
 
-    publishBtn.addEventListener("click", () => {
+    publishBtn.addEventListener("click", async () => {
 
         if (isPublishing) return;
 
@@ -100,13 +96,14 @@ export function renderPosting() {
 
         }
 
-        const caption =
-            document.getElementById("captionInput").value.trim();
+        const file = imageInput.files[0];
 
-        if (
-            preview.style.display === "none" ||
-            caption === ""
-        ) {
+        const caption = document
+            .getElementById("captionInput")
+            .value
+            .trim();
+
+        if (!file || caption === "") {
 
             alert("Pilih gambar dan isi caption.");
 
@@ -114,55 +111,76 @@ export function renderPosting() {
 
         }
 
-        isPublishing = true;
+        try {
 
-        publishBtn.disabled = true;
+            isPublishing = true;
 
-        publishBtn.textContent = "Memposting...";
+            publishBtn.disabled = true;
 
-        addPost({
+            publishBtn.textContent = "Mengupload...";
 
-            id: Date.now(),
+            // Upload ke Cloudinary
+            const imageUrl = await uploadImage(file);
 
-            memberId: user.id,
+            publishBtn.textContent = "Menyimpan...";
 
-            name: user.fullName,
+            addPost({
 
-            avatar: user.avatar,
+                id: Date.now(),
 
-            image: preview.src,
+                memberId: user.id,
 
-            caption: caption,
+                name: user.fullName,
 
-            time: Date.now(),
+                avatar: user.avatar,
 
-            likes: 0,
+                image: imageUrl,
 
-            likedBy: [],
+                caption: caption,
 
-            comments: [],
+                time: Date.now(),
 
-            isMe: true
+                likes: 0,
 
-        });
+                likedBy: [],
 
-        // Tambah jumlah posting user
-        updateMember(user.id, {
+                comments: [],
 
-            posting: (user.posting || 0) + 1
+                isMe: true
 
-        });
+            });
 
-        // Update currentUser agar ikut sinkron
-        user.posting = (user.posting || 0) + 1;
+            updateMember(user.id, {
 
-        localStorage.setItem(
-            "currentUser",
-            JSON.stringify(user)
-        );
+                posting: (user.posting || 0) + 1
 
-        // Langsung kembali ke beranda
-        navigate("home");
+            });
+
+            user.posting = (user.posting || 0) + 1;
+
+            localStorage.setItem(
+
+                "currentUser",
+
+                JSON.stringify(user)
+
+            );
+
+            navigate("home");
+
+        } catch (err) {
+
+            console.error(err);
+
+            alert("Upload gambar gagal.");
+
+            publishBtn.disabled = false;
+
+            publishBtn.textContent = "Publish";
+
+            isPublishing = false;
+
+        }
 
     });
 

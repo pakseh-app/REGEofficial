@@ -8,6 +8,7 @@ import { CommentModal } from "../components/commentModal.js";
 import { ImagePreview } from "../components/imagePreview.js";
 
 import { posts, savePosts } from "../data/posts.js";
+import { getCurrentMember } from "../data/members.js";
 
 export function renderHome() {
 
@@ -41,41 +42,101 @@ export function renderHome() {
 
     renderSidebar();
 
-    // ==========================
-    // LIKE
-    // ==========================
+   // ==========================
+// LAZY LOAD GAMBAR
+// ==========================
 
-    document.querySelectorAll(".like-btn").forEach(btn => {
+const observer = new IntersectionObserver((entries) => {
 
-        btn.addEventListener("click", () => {
+    entries.forEach(entry => {
 
-            const id = Number(btn.dataset.id);
+        if (!entry.isIntersecting) return;
 
-            const post = posts.find(p => p.id === id);
+        const img = entry.target;
 
-            if (!post) return;
+        img.src = img.dataset.src;
 
-            if (btn.classList.contains("liked")) {
+        img.onload = () => {
 
-                post.likes--;
+            img.classList.add("loaded");
 
-                btn.classList.remove("liked");
+        };
 
-            } else {
-
-                post.likes++;
-
-                btn.classList.add("liked");
-
-            }
-
-            btn.querySelector("span").textContent = post.likes;
-
-            savePosts(posts);
-
-        });
+        observer.unobserve(img);
 
     });
+
+},{
+
+    rootMargin:"300px"
+
+});
+
+document.querySelectorAll(".lazy-image").forEach(img=>{
+
+    observer.observe(img);
+
+});
+
+    // ==========================
+// LIKE
+// ==========================
+
+const currentUser = getCurrentMember();
+
+document.querySelectorAll(".like-btn").forEach(btn => {
+
+    const id = Number(btn.dataset.id);
+
+    const post = posts.find(p => p.id === id);
+
+    if (!post || !currentUser) return;
+
+    if (!post.likedBy) {
+
+        post.likedBy = [];
+
+    }
+
+    if (post.likedBy.includes(currentUser.id)) {
+
+        btn.classList.add("liked");
+
+    }
+
+    btn.querySelector("span").textContent = post.likes;
+
+    btn.addEventListener("click", () => {
+
+        if (post.likedBy.includes(currentUser.id)) {
+
+            post.likedBy = post.likedBy.filter(
+
+                uid => uid !== currentUser.id
+
+            );
+
+            post.likes--;
+
+            btn.classList.remove("liked");
+
+        } else {
+
+            post.likedBy.push(currentUser.id);
+
+            post.likes++;
+
+            btn.classList.add("liked");
+
+        }
+
+        btn.querySelector("span").textContent = post.likes;
+
+        savePosts();
+
+    });
+
+});
 
     // ==========================
     // KOMENTAR
@@ -149,7 +210,7 @@ export function renderHome() {
 
         });
 
-        savePosts(posts);
+        savePosts();
 
         commentList.innerHTML += `
 
@@ -178,7 +239,6 @@ export function renderHome() {
         commentList.scrollTop = commentList.scrollHeight;
 
     });
-
 
 // =========================
 // IMAGE PREVIEW

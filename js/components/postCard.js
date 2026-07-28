@@ -55,8 +55,7 @@ export function PostCard() {
         let avatar = post.avatar;
         let name = post.name;
 
-        // Jika posting memiliki memberId,
-        // ambil data terbaru dari members.js
+        // Ambil data member terbaru
         if (post.memberId) {
 
             const member = getMemberById(post.memberId);
@@ -70,7 +69,7 @@ export function PostCard() {
 
         }
 
-        // Untuk kompatibilitas posting lama
+        // Kompatibilitas posting lama
         else if (post.isMe && currentUser) {
 
             avatar = currentUser.avatar;
@@ -86,7 +85,10 @@ export function PostCard() {
 
                 <img
                     src="${avatar}"
-                    class="avatar">
+                    class="avatar"
+                    loading="lazy"
+                    decoding="async"
+                    draggable="false">
 
                 <div>
 
@@ -101,8 +103,9 @@ export function PostCard() {
             <p>${post.caption}</p>
 
             <img
-                src="${post.image}"
-                class="post-image">
+    data-src="${post.image}"
+    class="post-image lazy-image"
+    draggable="false">
 
             <div class="actions">
 

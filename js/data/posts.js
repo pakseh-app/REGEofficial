@@ -1,8 +1,14 @@
 const STORAGE_KEY = "rege_posts";
 
-// Data awal jika localStorage masih kosong
+// ===================================
+// Default Data
+// ===================================
+
 const defaultPosts = [];
-// Ambil data dari localStorage
+
+// ===================================
+// Load
+// ===================================
 
 export function loadPosts() {
 
@@ -10,7 +16,10 @@ export function loadPosts() {
 
     if (!data) {
 
-        savePosts(defaultPosts);
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(defaultPosts)
+        );
 
         return [...defaultPosts];
 
@@ -18,42 +27,70 @@ export function loadPosts() {
 
     let savedPosts = JSON.parse(data);
 
-    // Hapus postingan dummy (Andi & Rina)
-    savedPosts = savedPosts.filter(post =>
-        post.isMe === true
-    );
+    // Hapus posting dummy lama
+    savedPosts = savedPosts.filter(post => post.isMe === true);
 
-    savePosts(savedPosts);
+    localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(savedPosts)
+    );
 
     return savedPosts;
 
 }
 
-// Simpan ke localStorage
-export function savePosts(posts) {
+// ===================================
+// Variabel utama
+// ===================================
+
+export let posts = loadPosts();
+
+// ===================================
+// Simpan
+// ===================================
+
+export function savePosts() {
 
     localStorage.setItem(
+
         STORAGE_KEY,
+
         JSON.stringify(posts)
+
     );
 
 }
 
-// Variabel utama
-export let posts = loadPosts();
-
+// ===================================
 // Tambah posting
-export function addPost(post){
+// ===================================
+
+export function addPost(post) {
 
     posts.unshift(post);
 
-    savePosts(posts);
+    savePosts();
 
 }
 
-// Cari posting
-export function getPost(id){
+// ===================================
+// Ambil posting
+// ===================================
+
+export function getPost(id) {
 
     return posts.find(post => post.id == id);
+
+}
+
+// ===================================
+// Hapus posting
+// ===================================
+
+export function deletePost(id) {
+
+    posts = posts.filter(post => post.id != id);
+
+    savePosts();
 
 }

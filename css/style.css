@@ -1158,13 +1158,13 @@ textarea{
 
     width:100%;
 
-    max-height:500px;
+    display:block;
+
+    border-radius:12px;
 
     object-fit:cover;
 
-    display:block;
-
-    background:#0F172A;
+    min-height:220px;
 
 }
 
@@ -2010,17 +2010,31 @@ textarea{
 
 .post-image{
 
-    cursor:pointer;
+    width:100%;
 
-    transition:.25s;
+    display:block;
+
+    min-height:220px;
+
+    object-fit:cover;
+
+    opacity:0;
+
+    transition:
+        opacity .35s,
+        transform .25s;
+
+}
+
+.post-image.loaded{
+
+    opacity:1;
 
 }
 
 .post-image:hover{
 
     transform:scale(1.02);
-
-    opacity:.95;
 
 }
 
