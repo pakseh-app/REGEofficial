@@ -81,53 +81,70 @@ export function PostCard() {
 
         <div class="post">
 
-            <div class="post-header">
+    <div class="post-header">
 
-                <img
-                    src="${avatar}"
-                    class="avatar"
-                    loading="lazy"
-                    decoding="async"
-                    draggable="false">
-
-                <div>
-
-                    <h4>${name}</h4>
-
-                    <small>${formatTime(post.time)}</small>
-
-                </div>
-
-            </div>
-
-            <p>${post.caption}</p>
+        <div class="post-user">
 
             <img
-    data-src="${post.image}"
-    class="post-image lazy-image"
-    draggable="false">
+                src="${avatar}"
+                class="avatar"
+                loading="lazy"
+                decoding="async"
+                draggable="false">
 
-            <div class="actions">
+            <div>
 
-                <button
-                    class="like-btn"
-                    data-id="${post.id}">
+                <h4>${name}</h4>
 
-                    ❤️ <span>${post.likes}</span>
-
-                </button>
-
-                <button
-                    class="comment-btn"
-                    data-id="${post.id}">
-
-                    💬 <span>${post.comments.length}</span>
-
-                </button>
+                <small>${formatTime(post.time)}</small>
 
             </div>
 
         </div>
+
+        ${currentUser && post.memberId === currentUser.id ? `
+
+            <button
+                class="post-menu-btn"
+                data-id="${post.id}"
+                title="Menu">
+
+                ⋮
+
+            </button>
+
+        ` : ""}
+
+    </div>
+
+    <p>${post.caption}</p>
+
+    <img
+        data-src="${post.image}"
+        class="post-image lazy-image"
+        draggable="false">
+
+    <div class="actions">
+
+        <button
+            class="like-btn"
+            data-id="${post.id}">
+
+            ❤️ <span>${post.likes}</span>
+
+        </button>
+
+        <button
+            class="comment-btn"
+            data-id="${post.id}">
+
+            💬 <span>${post.comments.length}</span>
+
+        </button>
+
+    </div>
+
+</div>
 
         `;
 

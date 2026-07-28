@@ -6,9 +6,11 @@ import { BottomNav } from "../components/bottomNav.js";
 import { renderSidebar } from "../components/sidebar.js";
 import { CommentModal } from "../components/commentModal.js";
 import { ImagePreview } from "../components/imagePreview.js";
+import { PostMenu } from "../components/postMenu.js";
+import { EditPostModal } from "../components/editPostModal.js";
 
-import { posts, savePosts } from "../data/posts.js";
-import { getCurrentMember } from "../data/members.js";
+import { posts, savePosts, deletePost } from "../data/posts.js";
+import { getCurrentMember, updateMember } from "../data/members.js";
 
 export function renderHome() {
 
@@ -31,6 +33,10 @@ export function renderHome() {
         </main>
 
         ${ImagePreview()}
+
+        ${PostMenu()}
+
+        ${EditPostModal()}
 
         ${BottomNav()}
 
@@ -301,6 +307,160 @@ preview.addEventListener("click", (e) => {
     if (e.target === preview) {
 
         preview.classList.remove("show");
+
+    }
+
+});
+
+// =========================
+// POST MENU
+// =========================
+
+const postMenu = document.getElementById("postMenu");
+
+const closePostMenu = document.getElementById("closePostMenu");
+
+const deletePostBtn = document.getElementById("deletePostBtn");
+
+const editPostBtn = document.getElementById("editPostBtn");
+
+const editPostModal = document.getElementById("editPostModal");
+
+const editCaptionInput = document.getElementById("editCaptionInput");
+
+const cancelEditPost = document.getElementById("cancelEditPost");
+
+const saveEditPost = document.getElementById("saveEditPost");
+
+let selectedPostId = null;
+
+document.querySelectorAll(".post-menu-btn").forEach(btn => {
+
+    btn.addEventListener("click", () => {
+
+        selectedPostId = Number(btn.dataset.id);
+
+        postMenu.classList.add("show");
+
+    });
+
+});
+
+closePostMenu.addEventListener("click", () => {
+
+    postMenu.classList.remove("show");
+
+});
+
+postMenu.addEventListener("click", (e) => {
+
+    if (e.target === postMenu) {
+
+        postMenu.classList.remove("show");
+
+    }
+
+});
+
+
+// =========================
+// DELETE POST
+// =========================
+
+deletePostBtn.addEventListener("click", () => {
+
+    if (selectedPostId === null) return;
+
+    const yakin = confirm(
+        "Yakin ingin menghapus postingan ini?"
+    );
+
+    if (!yakin) return;
+
+    deletePost(selectedPostId);
+
+    if (currentUser) {
+
+        updateMember(currentUser.id, {
+
+            posting: Math.max(
+                0,
+                (currentUser.posting || 1) - 1
+            )
+
+        });
+
+    }
+
+    postMenu.classList.remove("show");
+
+    renderHome();
+
+});
+
+// =========================
+// EDIT CAPTION
+// =========================
+
+editPostBtn.addEventListener("click", () => {
+
+    const post = posts.find(
+
+        p => p.id === selectedPostId
+
+    );
+
+    if (!post) return;
+
+    editCaptionInput.value = post.caption;
+
+    postMenu.classList.remove("show");
+
+    editPostModal.classList.add("show");
+
+});
+
+cancelEditPost.addEventListener("click", () => {
+
+    editPostModal.classList.remove("show");
+
+});
+
+saveEditPost.addEventListener("click", () => {
+
+    const post = posts.find(
+
+        p => p.id === selectedPostId
+
+    );
+
+    if (!post) return;
+
+    const caption = editCaptionInput.value.trim();
+
+    if (caption === "") {
+
+        alert("Caption tidak boleh kosong.");
+
+        return;
+
+    }
+
+    post.caption = caption;
+
+    savePosts();
+
+    editPostModal.classList.remove("show");
+
+    renderHome();
+
+});
+
+editPostModal.addEventListener("click", (e) => {
+
+    if (e.target === editPostModal) {
+
+        editPostModal.classList.remove("show");
 
     }
 
