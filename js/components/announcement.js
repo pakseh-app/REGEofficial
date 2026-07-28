@@ -1,19 +1,40 @@
-import { announcements } from "../data/dummy.js";
+import { getAnnouncement } from "../data/announcements.js";
 
-export function Announcement(){
+export function Announcement() {
 
-const item=announcements[0];
+    const item = getAnnouncement();
 
-return`
+    // Tidak ada pengumuman
+    if (!item) {
 
-<section class="announcement">
+        return "";
 
-<h3>${item.title}</h3>
+    }
 
-<p>${item.content}</p>
+    return `
 
-</section>
+    <section class="announcement sticky-announcement">
 
-`;
+        <div class="announcement-pin">
+
+            📌 Pengumuman Ketua
+
+        </div>
+
+        <h3>
+
+            ${item.title}
+
+        </h3>
+
+        <p>
+
+            ${item.content}
+
+        </p>
+
+    </section>
+
+    `;
 
 }

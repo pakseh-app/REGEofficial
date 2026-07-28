@@ -1,6 +1,7 @@
 import { Navbar } from "../components/navbar.js";
 import { StorySection } from "../components/story.js";
 import { Announcement } from "../components/announcement.js";
+
 import { PostCard } from "../components/postCard.js";
 import { BottomNav } from "../components/bottomNav.js";
 import { renderSidebar } from "../components/sidebar.js";
@@ -26,11 +27,11 @@ export function renderHome() {
 
         ${Announcement()}
 
-        <main class="feed">
+<main class="feed">
 
-            ${PostCard()}
+    ${PostCard()}
 
-        </main>
+</main>
 
         ${ImagePreview()}
 
