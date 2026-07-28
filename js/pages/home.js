@@ -78,13 +78,15 @@ document.querySelectorAll(".lazy-image").forEach(img=>{
 
 });
 
-    // ==========================
+ // ==========================
 // LIKE
 // ==========================
 
 const currentUser = getCurrentMember();
 
 document.querySelectorAll(".like-btn").forEach(btn => {
+
+    let likeLocked = false;
 
     const id = Number(btn.dataset.id);
 
@@ -93,46 +95,74 @@ document.querySelectorAll(".like-btn").forEach(btn => {
     if (!post || !currentUser) return;
 
     if (!post.likedBy) {
-
         post.likedBy = [];
-
     }
 
     if (post.likedBy.includes(currentUser.id)) {
-
         btn.classList.add("liked");
-
     }
 
     btn.querySelector("span").textContent = post.likes;
 
     btn.addEventListener("click", () => {
 
-        if (post.likedBy.includes(currentUser.id)) {
+        if (likeLocked) return;
 
-            post.likedBy = post.likedBy.filter(
+        likeLocked = true;
 
+        const currentPost = posts.find(
+            p => p.id === id
+        );
+
+        if (!currentPost) {
+
+            likeLocked = false;
+
+            return;
+
+        }
+
+        if (!currentPost.likedBy) {
+            currentPost.likedBy = [];
+        }
+
+        const sudahLike = currentPost.likedBy.includes(
+            currentUser.id
+        );
+
+        if (sudahLike) {
+
+            currentPost.likedBy = currentPost.likedBy.filter(
                 uid => uid !== currentUser.id
-
             );
 
-            post.likes--;
+            currentPost.likes = Math.max(
+                0,
+                currentPost.likes - 1
+            );
 
             btn.classList.remove("liked");
 
         } else {
 
-            post.likedBy.push(currentUser.id);
+            currentPost.likedBy.push(currentUser.id);
 
-            post.likes++;
+            currentPost.likes++;
 
             btn.classList.add("liked");
 
         }
 
-        btn.querySelector("span").textContent = post.likes;
+        btn.querySelector("span").textContent =
+            currentPost.likes;
 
         savePosts();
+
+        setTimeout(() => {
+
+            likeLocked = false;
+
+        }, 150);
 
     });
 
