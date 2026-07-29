@@ -2319,3 +2319,45 @@ textarea{
     color:#fff;
 
 }
+
+/* ===========================
+   STICKY ANNOUNCEMENT
+=========================== */
+
+.sticky-announcement{
+
+    position: sticky;
+
+    top: 65px;
+
+    z-index: 90;
+
+    margin-bottom: 15px;
+
+}
+
+.announcement-pin{
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    color: #ff9800;
+
+    margin-bottom: 6px;
+
+}
+
+.announcement-content h3{
+
+    margin: 0 0 6px;
+
+}
+
+.announcement-content p{
+
+    margin: 0;
+
+    line-height: 1.5;
+
+}

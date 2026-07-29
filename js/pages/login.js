@@ -1,5 +1,11 @@
 import { navigate } from "../router.js";
-import { members } from "../data/members.js";
+
+import { auth, db } from "../services/firebase.js";
+
+import { signInWithEmailAndPassword } from "firebase/auth";
+
+import { doc, getDoc } from "firebase/firestore";
+
 import {
     setCurrentUser,
     saveCurrentUser
@@ -18,9 +24,9 @@ export function renderLogin() {
             <p>Masuk ke REGE Official</p>
 
             <input
-                type="text"
-                id="username"
-                placeholder="Username / Nomor HP">
+                type="email"
+                id="email"
+                placeholder="Email">
 
             <input
                 type="password"
@@ -51,60 +57,95 @@ export function renderLogin() {
 
     `;
 
-    // ===============================
-    // LOGIN
-    // ===============================
-
     document
         .getElementById("loginBtn")
-        .addEventListener("click", () => {
+        .onclick = async () => {
 
-            const username =
-                document.getElementById("username").value.trim();
+            const email =
+                document.getElementById("email").value.trim();
 
             const password =
                 document.getElementById("password").value.trim();
 
-            const user = members.find(member =>
+            if (!email || !password) {
 
-                (
-                    member.username === username ||
-                    member.phone === username
-                ) &&
-                member.password === password
-
-            );
-
-            if (!user) {
-
-                alert("Username atau password salah.");
+                alert("Email dan password wajib diisi.");
 
                 return;
 
             }
 
-            // Simpan status login
-            localStorage.setItem("isLogin", "true");
+            try {
 
-            // Simpan user aktif
-            setCurrentUser(user);
+                const userCredential =
+                    await signInWithEmailAndPassword(
+                        auth,
+                        email,
+                        password
+                    );
 
-            saveCurrentUser();
+                const uid = userCredential.user.uid;
 
-            navigate("home");
+                const docRef = doc(db, "users", uid);
 
-        });
+                const docSnap = await getDoc(docRef);
 
-    // ===============================
-    // REGISTER
-    // ===============================
+                if (!docSnap.exists()) {
+
+                    alert("Data pengguna tidak ditemukan.");
+
+                    return;
+
+                }
+
+                const user = docSnap.data();
+
+                setCurrentUser(user);
+
+                saveCurrentUser();
+
+                localStorage.setItem("isLogin", "true");
+
+                navigate("home");
+
+            } catch (error) {
+
+                console.error(error);
+
+                switch (error.code) {
+
+                    case "auth/user-not-found":
+                        alert("Email belum terdaftar.");
+                        break;
+
+                    case "auth/wrong-password":
+                        alert("Password salah.");
+                        break;
+
+                    case "auth/invalid-credential":
+                        alert("Email atau password salah.");
+                        break;
+
+                    case "auth/invalid-email":
+                        alert("Format email tidak valid.");
+                        break;
+
+                    default:
+                        alert("Gagal login.");
+                        break;
+
+                }
+
+            }
+
+        };
 
     document
         .getElementById("registerLink")
-        .addEventListener("click", () => {
+        .onclick = () => {
 
             navigate("register");
 
-        });
+        };
 
 }

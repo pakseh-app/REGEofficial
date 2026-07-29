@@ -1,5 +1,15 @@
 import { navigate } from "../router.js";
-import { addMember } from "../data/members.js";
+
+import { auth, db } from "../services/firebase.js";
+
+import {
+    createUserWithEmailAndPassword
+} from "firebase/auth";
+
+import {
+    doc,
+    setDoc
+} from "firebase/firestore";
 
 export function renderRegister() {
 
@@ -14,24 +24,29 @@ export function renderRegister() {
             <p>Bergabung dengan REGE Official</p>
 
             <input
-    type="text"
-    id="fullname"
-    placeholder="Nama Lengkap">
+                type="text"
+                id="fullname"
+                placeholder="Nama Lengkap">
 
-<input
-    type="text"
-    id="username"
-    placeholder="Username">
+            <input
+                type="text"
+                id="username"
+                placeholder="Username">
 
-<input
-    type="text"
-    id="phone"
-    placeholder="Nomor HP">
+            <input
+                type="email"
+                id="email"
+                placeholder="Email">
 
-<input
-    type="password"
-    id="password"
-    placeholder="Password">
+            <input
+                type="text"
+                id="phone"
+                placeholder="Nomor HP">
+
+            <input
+                type="password"
+                id="password"
+                placeholder="Password">
 
             <button id="registerBtn">
 
@@ -58,71 +73,99 @@ export function renderRegister() {
     `;
 
     document
-    .getElementById("registerBtn")
-    .onclick = () => {
+        .getElementById("registerBtn")
+        .onclick = async () => {
 
-        const fullName =
-            document.getElementById("fullname").value.trim();
+            const fullName =
+                document.getElementById("fullname").value.trim();
 
-        const username =
-            document.getElementById("username").value.trim();
+            const username =
+                document.getElementById("username").value.trim();
 
-        const phone =
-            document.getElementById("phone").value.trim();
+            const email =
+                document.getElementById("email").value.trim();
 
-        const password =
-            document.getElementById("password").value.trim();
+            const phone =
+                document.getElementById("phone").value.trim();
 
-        if (
-            fullName === "" ||
-            username === "" ||
-            phone === "" ||
-            password === ""
-        ) {
+            const password =
+                document.getElementById("password").value.trim();
 
-            alert("Semua data harus diisi.");
+            if (
+                !fullName ||
+                !username ||
+                !email ||
+                !phone ||
+                !password
+            ) {
 
-            return;
+                alert("Semua data wajib diisi.");
 
-        }
+                return;
 
-        addMember({
+            }
 
-            id: "RG" + Date.now(),
+            try {
 
-            fullName,
+                const userCredential =
+                    await createUserWithEmailAndPassword(
+                        auth,
+                        email,
+                        password
+                    );
 
-            username,
+                const user = userCredential.user;
 
-            phone,
+                await setDoc(
+                    doc(db, "users", user.uid),
+                    {
 
-            password,
+                        uid: user.uid,
 
-            avatar: "assets/default-avatar.png",
+                        fullName,
 
-            bio: "Selamat datang di REGE Official 🚀",
+                        username,
 
-            jabatan: "Anggota",
+                        email,
 
-            role: "Member",
+                        phone,
 
-            hadir: 0,
+                        avatar: "assets/default-avatar.png",
 
-            tidakHadir: 0,
+                        bio: "Selamat datang di REGE Official 🚀",
 
-            terlambat: 0,
+                        jabatan: "Anggota",
 
-            posting: 0,
+                        role: "Member",
 
-            approved: true
+                        hadir: 0,
 
-        });
+                        tidakHadir: 0,
 
-        alert("Registrasi berhasil.");
+                        terlambat: 0,
 
-        navigate("login");
+                        posting: 0,
 
-    };
+                        approved: true,
+
+                        createdAt: new Date()
+
+                    }
+                );
+
+                alert("Registrasi berhasil!");
+
+                navigate("login");
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(error.message);
+
+            }
+
+        };
 
     document
         .getElementById("loginLink")

@@ -1,46 +1,6 @@
 import { navigate } from "../router.js";
 import { getCurrentMember } from "../data/members.js";
 
-const menus = [
-
-    {
-        id: "attendance",
-        icon: "fa-solid fa-calendar-check",
-        text: "Absensi"
-    },
-
-    {
-        id: "finance",
-        icon: "fa-solid fa-wallet",
-        text: "Keuangan"
-    },
-
-    {
-        id: "position",
-        icon: "fa-solid fa-user-tie",
-        text: "Jabatan"
-    },
-
-    {
-        id: "setting",
-        icon: "fa-solid fa-gear",
-        text: "Pengaturan"
-    },
-
-    {
-        id: "darkmode",
-        icon: "fa-solid fa-moon",
-        text: "Dark Mode"
-    },
-
-    {
-        id: "logout",
-        icon: "fa-solid fa-right-from-bracket",
-        text: "Logout"
-    }
-
-];
-
 export function renderSidebar() {
 
     const sidebar = document.getElementById("sidebar");
@@ -55,6 +15,96 @@ export function renderSidebar() {
 
     }
 
+    // =====================================
+    // MENU
+    // =====================================
+
+    const menus = [
+
+        {
+            id: "attendance",
+            icon: "fa-solid fa-calendar-check",
+            text: "Absensi"
+        },
+
+        {
+            id: "finance",
+            icon: "fa-solid fa-wallet",
+            text: "Keuangan"
+        }
+
+    ];
+
+    // Menu khusus Admin / Ketua
+    if (
+
+        user.role === "Admin" ||
+
+        user.jabatan === "Ketua"
+
+    ) {
+
+        menus.push({
+
+            id: "announcement",
+
+            icon: "fa-solid fa-bullhorn",
+
+            text: "Pusat Informasi"
+
+        });
+
+    }
+
+    // Menu umum
+    menus.push(
+
+        {
+
+            id: "position",
+
+            icon: "fa-solid fa-user-tie",
+
+            text: "Jabatan"
+
+        },
+
+        {
+
+            id: "setting",
+
+            icon: "fa-solid fa-gear",
+
+            text: "Pengaturan"
+
+        },
+
+        {
+
+            id: "darkmode",
+
+            icon: "fa-solid fa-moon",
+
+            text: "Dark Mode"
+
+        },
+
+        {
+
+            id: "logout",
+
+            icon: "fa-solid fa-right-from-bracket",
+
+            text: "Logout"
+
+        }
+
+    );
+
+    // =====================================
+    // RENDER
+    // =====================================
+
     sidebar.innerHTML = `
 
     <div class="sidebar-overlay"></div>
@@ -64,7 +114,9 @@ export function renderSidebar() {
         <div class="sidebar-header">
 
             <img
+
                 src="${user.avatar}"
+
                 class="sidebar-avatar">
 
             <h3>${user.fullName}</h3>
@@ -93,11 +145,13 @@ export function renderSidebar() {
 
     `;
 
-    const menuButton =
-        document.getElementById("menuButton");
+    // =====================================
+    // OPEN / CLOSE
+    // =====================================
 
-    const overlay =
-        sidebar.querySelector(".sidebar-overlay");
+    const menuButton = document.getElementById("menuButton");
+
+    const overlay = sidebar.querySelector(".sidebar-overlay");
 
     menuButton.onclick = () => {
 
@@ -111,8 +165,14 @@ export function renderSidebar() {
 
     };
 
+    // =====================================
+    // MENU CLICK
+    // =====================================
+
     sidebar
+
         .querySelectorAll(".menu-list li")
+
         .forEach(item => {
 
             item.onclick = () => {
@@ -121,22 +181,35 @@ export function renderSidebar() {
 
                 const page = item.dataset.page;
 
-                if (page === "logout") {
+                switch (page) {
 
-                    if (confirm("Yakin ingin logout?")) {
+                    case "announcement":
 
-                        localStorage.removeItem("isLogin");
-                        localStorage.removeItem("currentUser");
+                        navigate("announcement");
 
-                        navigate("login");
+                        break;
 
-                    }
+                    case "logout":
 
-                    return;
+                        if (confirm("Yakin ingin logout?")) {
+
+                            localStorage.removeItem("isLogin");
+
+                            localStorage.removeItem("currentUser");
+
+                            navigate("login");
+
+                        }
+
+                        break;
+
+                    default:
+
+                        alert("Menu ini masih dalam pengembangan.");
+
+                        break;
 
                 }
-
-                alert("Menu ini masih dalam pengembangan.");
 
             };
 

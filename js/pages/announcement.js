@@ -1,17 +1,21 @@
 import { Navbar } from "../components/navbar.js";
 import { BottomNav } from "../components/bottomNav.js";
-import { AnnouncementForm } from "../components/announcementForm.js";
 import { renderSidebar } from "../components/sidebar.js";
+import { AnnouncementForm } from "../components/announcementForm.js";
 
 import {
 
     saveAnnouncement,
+
+    getAnnouncement,
 
     clearAnnouncement
 
 } from "../data/announcements.js";
 
 export function renderAnnouncement() {
+
+    const announcement = getAnnouncement();
 
     document.getElementById("app").innerHTML = `
 
@@ -23,7 +27,96 @@ export function renderAnnouncement() {
 
         <main class="feed">
 
+            <div class="info-header">
+
+                <h2>
+
+                    📢 Pusat Informasi
+
+                </h2>
+
+                <p>
+
+                    Kelola seluruh informasi resmi REGE Official.
+
+                </p>
+
+            </div>
+
             ${AnnouncementForm()}
+
+            <div class="info-card">
+
+                <h3>
+
+                    📌 Pengumuman Aktif
+
+                </h3>
+
+                ${
+                    announcement
+
+                    ?
+
+                    `
+
+                    <div class="current-announcement">
+
+                        <h4>
+
+                            ${announcement.title}
+
+                        </h4>
+
+                        <p>
+
+                            ${announcement.content}
+
+                        </p>
+
+                        <button id="deleteAnnouncement">
+
+                            🗑 Hapus Pengumuman
+
+                        </button>
+
+                    </div>
+
+                    `
+
+                    :
+
+                    `
+
+                    <p>
+
+                        Belum ada pengumuman.
+
+                    </p>
+
+                    `
+
+                }
+
+            </div>
+
+            <div class="info-card">
+
+                <h3>
+
+                    🚧 Modul Berikutnya</h3>
+
+                <ul>
+
+                    <li>📅 Agenda Kegiatan</li>
+
+                    <li>📄 Surat</li>
+
+                    <li>🖼 Dokumentasi</li>
+
+                </ul>
+
+            </div>
 
         </main>
 
@@ -34,6 +127,10 @@ export function renderAnnouncement() {
     `;
 
     renderSidebar();
+
+    // ===========================
+    // PUBLIKASI
+    // ===========================
 
     document
 
@@ -109,6 +206,42 @@ export function renderAnnouncement() {
 
             alert("✅ Pengumuman berhasil dipublikasikan.");
 
+            renderAnnouncement();
+
         };
+
+    // ===========================
+    // HAPUS
+    // ===========================
+
+    const deleteBtn =
+
+        document.getElementById("deleteAnnouncement");
+
+    if (deleteBtn) {
+
+        deleteBtn.onclick = () => {
+
+            if (
+
+                confirm(
+
+                    "Hapus pengumuman ini?"
+
+                )
+
+            ) {
+
+                clearAnnouncement();
+
+                alert("Pengumuman dihapus.");
+
+                renderAnnouncement();
+
+            }
+
+        };
+
+    }
 
 }

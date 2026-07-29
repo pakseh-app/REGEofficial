@@ -4,7 +4,6 @@ export function Announcement() {
 
     const item = getAnnouncement();
 
-    // Tidak ada pengumuman
     if (!item) {
 
         return "";
@@ -21,17 +20,21 @@ export function Announcement() {
 
         </div>
 
-        <h3>
+        <div class="announcement-content">
 
-            ${item.title}
+            <h3>
 
-        </h3>
+                ${item.title}
 
-        <p>
+            </h3>
 
-            ${item.content}
+            <p>
 
-        </p>
+                ${item.content}
+
+            </p>
+
+        </div>
 
     </section>
 
