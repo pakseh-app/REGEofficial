@@ -1,53 +1,55 @@
 import {
     collection,
-    doc,
     addDoc,
     getDocs,
     getDoc,
+    doc,
     updateDoc,
     deleteDoc,
-    arrayUnion,
-    arrayRemove,
-    increment,
     query,
     orderBy,
-    serverTimestamp
+    arrayUnion,
+    arrayRemove,
+    increment
 } from "firebase/firestore";
 
 import { db } from "../services/firebase.js";
 
-// ======================================
+// =====================================
 // COLLECTION
-// ======================================
+// =====================================
 
 const postsRef = collection(db, "posts");
 
-// ======================================
-// GET ALL POSTS
-// ======================================
+// =====================================
+// GET POSTS
+// =====================================
 
 export async function getPosts() {
 
     const q = query(
+
         postsRef,
-        orderBy("createdAt", "desc")
+
+        orderBy("time", "desc")
+
     );
 
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map(doc => ({
+    return snapshot.docs.map(item => ({
 
-        id: doc.id,
+        id: item.id,
 
-        ...doc.data()
+        ...item.data()
 
     }));
 
 }
 
-// ======================================
+// =====================================
 // GET POST
-// ======================================
+// =====================================
 
 export async function getPost(id) {
 
@@ -73,15 +75,15 @@ export async function getPost(id) {
 
 }
 
-// ======================================
+// =====================================
 // ADD POST
-// ======================================
+// =====================================
 
 export async function addPost(post) {
 
     if (!post.uid) {
 
-        throw new Error("UID posting kosong.");
+        throw new Error("UID kosong saat membuat posting.");
 
     }
 
@@ -93,8 +95,6 @@ export async function addPost(post) {
 
             uid: post.uid,
 
-            memberId: post.memberId,
-
             name: post.name,
 
             avatar: post.avatar,
@@ -103,15 +103,15 @@ export async function addPost(post) {
 
             image: post.image,
 
+            createdAt: Date.now(),
+
+            time: Date.now(),
+
             likes: 0,
 
             likedBy: [],
 
-            comments: [],
-
-            isMe: true,
-
-            createdAt: serverTimestamp()
+            comments: []
 
         }
 
@@ -121,9 +121,9 @@ export async function addPost(post) {
 
 }
 
-// ======================================
+// =====================================
 // UPDATE POST
-// ======================================
+// =====================================
 
 export async function updatePost(id, data) {
 
@@ -137,9 +137,9 @@ export async function updatePost(id, data) {
 
 }
 
-// ======================================
+// =====================================
 // DELETE POST
-// ======================================
+// =====================================
 
 export async function deletePost(id) {
 
@@ -151,9 +151,9 @@ export async function deletePost(id) {
 
 }
 
-// ======================================
+// =====================================
 // LIKE
-// ======================================
+// =====================================
 
 export async function likePost(postId, uid) {
 
@@ -173,9 +173,9 @@ export async function likePost(postId, uid) {
 
 }
 
-// ======================================
+// =====================================
 // UNLIKE
-// ======================================
+// =====================================
 
 export async function unlikePost(postId, uid) {
 
@@ -195,9 +195,9 @@ export async function unlikePost(postId, uid) {
 
 }
 
-// ======================================
+// =====================================
 // COMMENT
-// ======================================
+// =====================================
 
 export async function addComment(postId, comment) {
 

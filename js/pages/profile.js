@@ -5,7 +5,10 @@ import { CropModal } from "../components/cropModal.js";
 
 import { uploadImage } from "../services/cloudinary.js";
 
-import { getCurrentUser } from "../data/currentUser.js";
+import {
+    getCurrentUser,
+    updateCurrentUser
+} from "../data/currentUser.js";
 import { updateMember } from "../data/members.js";
 
 import { navigate } from "../router.js";
@@ -288,31 +291,61 @@ document.getElementById("profileBio").textContent = user.bio || "";
 document.getElementById("editProfile").onclick = async () => {
 
     const nama = prompt(
+
         "Nama Baru",
+
         user.fullName
+
     );
 
     if (!nama) return;
 
     const bio = prompt(
+
         "Bio Baru",
+
         user.bio || ""
+
     );
 
-    document.getElementById("profileName").textContent = nama;
-    document.getElementById("profileBio").textContent = bio || "";
-
-    user.fullName = nama;
-    user.bio = bio || "";
-
     try {
+
+        // ===========================
+        // UPDATE FIRESTORE
+        // ===========================
 
         await updateMember(user.uid, {
 
             fullName: nama,
+
             bio: bio || ""
 
         });
+
+        // ===========================
+        // UPDATE DATA LOKAL
+        // ===========================
+
+        user.fullName = nama;
+
+        user.bio = bio || "";
+
+        // Simpan kembali ke session
+        updateCurrentUser({
+
+            fullName: nama,
+
+            bio: bio || ""
+
+        });
+
+        // ===========================
+        // UPDATE TAMPILAN
+        // ===========================
+
+        document.getElementById("profileName").textContent = nama;
+
+        document.getElementById("profileBio").textContent = bio || "";
 
         alert("✅ Profil berhasil diperbarui.");
 

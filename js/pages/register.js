@@ -15,40 +15,32 @@ export function renderRegister() {
 
             <p>Bergabung dengan REGE Official</p>
 
-            <input
-                type="text"
-                id="fullname"
-                placeholder="Nama Lengkap">
+            <input id="fullname" type="text" placeholder="Nama Lengkap">
 
-            <input
-                type="text"
-                id="username"
-                placeholder="Username">
+            <input id="username" type="text" placeholder="Username">
 
-            <input
-                type="email"
-                id="email"
-                placeholder="Email">
+            <input id="email" type="email" placeholder="Email">
 
-            <input
-                type="text"
-                id="phone"
-                placeholder="Nomor HP">
+            <input id="phone" type="text" placeholder="Nomor HP">
 
-            <input
-                type="password"
-                id="password"
-                placeholder="Password">
+            <input id="password" type="password" placeholder="Password">
 
             <button id="registerBtn">
+
                 Daftar
+
             </button>
 
             <p class="register-text">
+
                 Sudah punya akun?
+
                 <span id="loginLink">
+
                     Masuk
+
                 </span>
+
             </p>
 
         </div>
@@ -59,20 +51,15 @@ export function renderRegister() {
 
     document.getElementById("registerBtn").onclick = async () => {
 
-        const fullName =
-            document.getElementById("fullname").value.trim();
+        const fullName = document.getElementById("fullname").value.trim();
 
-        const username =
-            document.getElementById("username").value.trim();
+        const username = document.getElementById("username").value.trim();
 
-        const email =
-            document.getElementById("email").value.trim();
+        const email = document.getElementById("email").value.trim();
 
-        const phone =
-            document.getElementById("phone").value.trim();
+        const phone = document.getElementById("phone").value.trim();
 
-        const password =
-            document.getElementById("password").value.trim();
+        const password = document.getElementById("password").value.trim();
 
         if (
             !fullName ||
@@ -90,17 +77,9 @@ export function renderRegister() {
 
         try {
 
-            // ==========================
-            // Firebase Authentication
-            // ==========================
-
             const credential = await register(email, password);
 
             const uid = credential.user.uid;
-
-            // ==========================
-            // Firestore
-            // ==========================
 
             const member = {
 
@@ -120,17 +99,17 @@ export function renderRegister() {
 
                 role: "Member",
 
-                hadir: 0,
-
-                tidakHadir: 0,
-
-                terlambat: 0,
-
                 posting: 0,
 
                 followers: 0,
 
                 following: 0,
+
+                hadir: 0,
+
+                tidakHadir: 0,
+
+                terlambat: 0,
 
                 approved: true,
 
@@ -144,28 +123,35 @@ export function renderRegister() {
 
             navigate("login");
 
-        }
+        } catch (err) {
 
-        catch (error) {
+            console.error(err);
 
-            console.error(error);
-
-            switch (error.code) {
+            switch (err.code) {
 
                 case "auth/email-already-in-use":
+
                     alert("Email sudah digunakan.");
+
                     break;
 
                 case "auth/weak-password":
+
                     alert("Password minimal 6 karakter.");
+
                     break;
 
                 case "auth/invalid-email":
+
                     alert("Format email tidak valid.");
+
                     break;
 
                 default:
-                    alert(error.message);
+
+                    alert(err.message);
+
+                    break;
 
             }
 

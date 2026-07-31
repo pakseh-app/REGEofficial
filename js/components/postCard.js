@@ -2,35 +2,31 @@
 // FORMAT WAKTU
 // =====================================
 
-function formatTime(timestamp) {
+function formatTime(value) {
 
-    if (!timestamp) {
+    if (!value) return "Baru saja";
 
-        return "Baru saja";
+    let time = value;
 
+    if (typeof value === "object" && value.seconds) {
+        time = value.seconds * 1000;
     }
 
-    if (timestamp.seconds) {
+    const diff = Date.now() - time;
 
-        timestamp = timestamp.seconds * 1000;
-
-    }
-
-    const diff = Date.now() - timestamp;
-
-    const minute = 60000;
+    const minute = 1000 * 60;
     const hour = minute * 60;
     const day = hour * 24;
     const month = day * 30;
-    const year = month * 12;
+    const year = day * 365;
 
     if (diff < minute) return "Baru saja";
-    if (diff < hour) return Math.floor(diff / minute) + " menit lalu";
-    if (diff < day) return Math.floor(diff / hour) + " jam lalu";
-    if (diff < month) return Math.floor(diff / day) + " hari lalu";
-    if (diff < year) return Math.floor(diff / month) + " bulan lalu";
+    if (diff < hour) return `${Math.floor(diff / minute)} menit lalu`;
+    if (diff < day) return `${Math.floor(diff / hour)} jam lalu`;
+    if (diff < month) return `${Math.floor(diff / day)} hari lalu`;
+    if (diff < year) return `${Math.floor(diff / month)} bulan lalu`;
 
-    return Math.floor(diff / year) + " tahun lalu";
+    return `${Math.floor(diff / year)} tahun lalu`;
 
 }
 
@@ -45,18 +41,25 @@ export async function PostCard(posts, currentUser) {
     for (const post of posts) {
 
         const avatar =
-            post.avatar ||
-            "assets/default-avatar.png";
+            post.avatar && post.avatar !== ""
+                ? post.avatar
+                : "assets/default-avatar.png";
 
         const fullName =
             post.name ||
+            post.fullName ||
+            post.username ||
             "Unknown User";
 
-        const isOwner =
-            currentUser?.uid === post.uid;
+        const image =
+            post.image ||
+            "";
 
         const liked =
             post.likedBy?.includes(currentUser?.uid);
+
+        const isOwner =
+            currentUser?.uid === post.uid;
 
         html += `
 
@@ -67,26 +70,25 @@ export async function PostCard(posts, currentUser) {
         <div class="post-user">
 
             <img
-                src="${avatar}"
                 class="avatar"
-                draggable="false">
+                src="${avatar}"
+                alt="${fullName}"
+                draggable="false"
+            >
 
-            <div>
+            <div class="post-user-info">
 
                 <h4>${fullName}</h4>
 
-                <small>
-
-                    ${formatTime(post.createdAt || post.time)}
-
-                </small>
+                <small>${formatTime(post.createdAt || post.time)}</small>
 
             </div>
 
         </div>
 
-        ${isOwner ? `
-
+        ${
+            isOwner
+                ? `
         <button
             class="post-menu-btn"
             data-id="${post.id}">
@@ -94,64 +96,57 @@ export async function PostCard(posts, currentUser) {
             <i class="fa-solid fa-ellipsis"></i>
 
         </button>
-
-        ` : ""}
+        `
+                : ""
+        }
 
     </div>
 
-    <div class="post-body">
-
-        ${post.caption ? `
-
+    ${
+        post.caption
+            ? `
         <p class="post-caption">
-
             ${post.caption}
-
         </p>
+        `
+            : ""
+    }
 
-        ` : ""}
-
+    ${
+        image
+            ? `
         <img
-            src="${post.image}"
             class="post-image"
+            src="${image}"
+            alt="Postingan"
             loading="lazy"
-            draggable="false">
-
-    </div>
+            draggable="false"
+        >
+        `
+            : ""
+    }
 
     <div class="post-footer">
 
-        <div class="post-actions">
+        <button
+            class="like-btn ${liked ? "liked" : ""}"
+            data-id="${post.id}">
 
-            <button
-                class="like-btn ${liked ? "liked" : ""}"
-                data-id="${post.id}">
+            <i class="${liked ? "fa-solid" : "fa-regular"} fa-heart"></i>
 
-                <i class="fa-heart ${liked ? "fa-solid" : "fa-regular"}"></i>
+            <span>${post.likes || 0}</span>
 
-                <span>
+        </button>
 
-                    ${post.likes || 0}
+        <button
+            class="comment-btn"
+            data-id="${post.id}">
 
-                </span>
+            <i class="fa-regular fa-comment"></i>
 
-            </button>
+            <span>${post.comments?.length || 0}</span>
 
-            <button
-                class="comment-btn"
-                data-id="${post.id}">
-
-                <i class="fa-regular fa-comment"></i>
-
-                <span>
-
-                    ${post.comments?.length || 0}
-
-                </span>
-
-            </button>
-
-        </div>
+        </button>
 
     </div>
 
