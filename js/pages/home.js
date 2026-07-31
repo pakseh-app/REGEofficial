@@ -1,19 +1,36 @@
 import { Navbar } from "../components/navbar.js";
 import { StorySection } from "../components/story.js";
 import { Announcement } from "../components/announcement.js";
-
-import { PostCard } from "../components/postCard.js";
 import { BottomNav } from "../components/bottomNav.js";
-import { renderSidebar } from "../components/sidebar.js";
 import { CommentModal } from "../components/commentModal.js";
 import { ImagePreview } from "../components/imagePreview.js";
 import { PostMenu } from "../components/postMenu.js";
 import { EditPostModal } from "../components/editPostModal.js";
 
-import { posts, savePosts, deletePost } from "../data/posts.js";
-import { getCurrentMember, updateMember } from "../data/members.js";
+import { renderSidebar } from "../components/sidebar.js";
+import { PostCard } from "../components/postCard.js";
 
-export function renderHome() {
+import {
+    getPosts
+} from "../data/posts.js";
+
+import {
+    getCurrentUser
+} from "../data/currentUser.js";
+
+export async function renderHome() {
+
+    const currentUser = getCurrentUser();
+
+    if (!currentUser) {
+
+        location.hash = "#login";
+
+        return;
+
+    }
+
+    const posts = await getPosts();
 
     document.getElementById("app").innerHTML = `
 
@@ -27,11 +44,11 @@ export function renderHome() {
 
         ${Announcement()}
 
-<main class="feed">
+        <main class="feed">
 
-    ${PostCard()}
+            ${await PostCard(posts, currentUser)}
 
-</main>
+        </main>
 
         ${ImagePreview()}
 
@@ -49,135 +66,234 @@ export function renderHome() {
 
     renderSidebar();
 
-   // ==========================
-// LAZY LOAD GAMBAR
-// ==========================
 
-const observer = new IntersectionObserver((entries) => {
+        // =====================================
+    // SIDEBAR
+    // =====================================
 
-    entries.forEach(entry => {
+    const menuButton = document.getElementById("menuButton");
 
-        if (!entry.isIntersecting) return;
+    if (menuButton) {
 
-        const img = entry.target;
+        menuButton.addEventListener("click", () => {
 
-        img.src = img.dataset.src;
+            const sidebar = document.getElementById("sidebar");
 
-        img.onload = () => {
+            sidebar.classList.add("show");
 
-            img.classList.add("loaded");
+        });
 
-        };
-
-        observer.unobserve(img);
-
-    });
-
-},{
-
-    rootMargin:"300px"
-
-});
-
-document.querySelectorAll(".lazy-image").forEach(img=>{
-
-    observer.observe(img);
-
-});
-
- // ==========================
-// LIKE
-// ==========================
-
-const currentUser = getCurrentMember();
-
-document.querySelectorAll(".like-btn").forEach(btn => {
-
-    let likeLocked = false;
-
-    const id = Number(btn.dataset.id);
-
-    const post = posts.find(p => p.id === id);
-
-    if (!post || !currentUser) return;
-
-    if (!post.likedBy) {
-        post.likedBy = [];
     }
 
-    if (post.likedBy.includes(currentUser.id)) {
-        btn.classList.add("liked");
-    }
+    // =====================================
+    // LAZY IMAGE
+    // =====================================
 
-    btn.querySelector("span").textContent = post.likes;
+    const observer = new IntersectionObserver(
 
-    btn.addEventListener("click", () => {
+        entries => {
 
-        if (likeLocked) return;
+            entries.forEach(entry => {
 
-        likeLocked = true;
+                if (!entry.isIntersecting) return;
 
-        const currentPost = posts.find(
-            p => p.id === id
-        );
+                const img = entry.target;
 
-        if (!currentPost) {
+                img.src = img.dataset.src || img.src;
 
-            likeLocked = false;
+                img.onload = () => {
 
-            return;
+                    img.classList.add("loaded");
 
-        }
+                };
 
-        if (!currentPost.likedBy) {
-            currentPost.likedBy = [];
-        }
+                observer.unobserve(img);
 
-        const sudahLike = currentPost.likedBy.includes(
-            currentUser.id
-        );
+            });
 
-        if (sudahLike) {
+        },
 
-            currentPost.likedBy = currentPost.likedBy.filter(
-                uid => uid !== currentUser.id
-            );
+        {
 
-            currentPost.likes = Math.max(
-                0,
-                currentPost.likes - 1
-            );
-
-            btn.classList.remove("liked");
-
-        } else {
-
-            currentPost.likedBy.push(currentUser.id);
-
-            currentPost.likes++;
-
-            btn.classList.add("liked");
+            rootMargin: "300px"
 
         }
 
-        btn.querySelector("span").textContent =
-            currentPost.likes;
+    );
 
-        savePosts();
+    document
 
-        setTimeout(() => {
+        .querySelectorAll(".lazy-image")
 
-            likeLocked = false;
+        .forEach(img => observer.observe(img));
 
-        }, 150);
+    // =====================================
+    // IMAGE PREVIEW
+    // =====================================
 
-    });
+    const preview = document.getElementById("imagePreview");
 
-});
+    const previewImg = document.getElementById("previewImg");
 
-    // ==========================
-    // KOMENTAR
-    // ==========================
+    const closePreview = document.getElementById("closePreview");
+
+    document
+
+        .querySelectorAll(".post-image")
+
+        .forEach(img => {
+
+            img.onclick = () => {
+
+                preview.classList.add("show");
+
+                previewImg.src = img.src;
+
+            };
+
+        });
+
+    closePreview.onclick = () => {
+
+        preview.classList.remove("show");
+
+    };
+
+    preview.onclick = e => {
+
+        if (e.target === preview) {
+
+            preview.classList.remove("show");
+
+        }
+
+    };
+
+        // =====================================
+    // LIKE POST (FIREBASE)
+    // =====================================
+
+    const {
+
+        likePost,
+
+        unlikePost,
+
+        getPost
+
+    } = await import("../data/posts.js");
+
+    document
+
+        .querySelectorAll(".like-btn")
+
+        .forEach(btn => {
+
+            let locked = false;
+
+            btn.onclick = async () => {
+
+                if (locked) return;
+
+                locked = true;
+
+                try {
+
+                    const postId = btn.dataset.id;
+
+                    const post = await getPost(postId);
+
+                    if (!post) {
+
+                        locked = false;
+
+                        return;
+
+                    }
+
+                    const liked =
+
+                        post.likedBy?.includes(
+
+                            currentUser.uid
+
+                        );
+
+                    if (liked) {
+
+                        await unlikePost(
+
+                            postId,
+
+                            currentUser.uid
+
+                        );
+
+                    } else {
+
+                        await likePost(
+
+                            postId,
+
+                            currentUser.uid
+
+                        );
+
+                    }
+
+                    const latest = await getPost(postId);
+
+                    btn.classList.toggle(
+
+                        "liked",
+
+                        latest.likedBy?.includes(
+
+                            currentUser.uid
+
+                        )
+
+                    );
+
+                    const icon = btn.querySelector("i");
+
+                    icon.className =
+
+                        latest.likedBy?.includes(
+
+                            currentUser.uid
+
+                        )
+
+                        ? "fa-solid fa-heart"
+
+                        : "fa-regular fa-heart";
+
+                    btn.querySelector("span").textContent =
+
+                        latest.likes || 0;
+
+                } catch (err) {
+
+                    console.error(err);
+
+                }
+
+                locked = false;
+
+            };
+
+        });
+
+            // =====================================
+    // COMMENT
+    // =====================================
+
+    const {
+
+        addComment
+
+    } = await import("../data/posts.js");
 
     const modal = document.getElementById("commentModal");
 
@@ -189,282 +305,345 @@ document.querySelectorAll(".like-btn").forEach(btn => {
 
     const closeButton = document.getElementById("closeComment");
 
-    let currentPost = null;
 
-    document.querySelectorAll(".comment-btn").forEach(btn => {
+    document
 
-        btn.addEventListener("click", () => {
+        .querySelectorAll(".comment-btn")
 
-            const id = Number(btn.dataset.id);
+        .forEach(btn => {
 
-            currentPost = posts.find(p => p.id === id);
+            btn.onclick = async () => {
 
-            if (!currentPost) return;
+                selectedPostId = btn.dataset.id;
 
-            commentList.innerHTML = "";
+                const post = await getPost(selectedPostId);
 
-            currentPost.comments.forEach(comment => {
+                commentList.innerHTML = "";
 
-                commentList.innerHTML += `
+                (post.comments || []).forEach(comment => {
 
-                    <div class="comment-item">
+                    commentList.innerHTML += `
 
-                        <b>${comment.name}</b>
+<div class="comment-item">
 
-                        <p>${comment.text}</p>
+<b>${comment.name}</b>
 
-                    </div>
+<p>${comment.text}</p>
 
-                `;
+</div>
 
-            });
+`;
 
-            modal.classList.add("show");
+                });
+
+                modal.classList.add("show");
+
+                commentInput.focus();
+
+            };
 
         });
 
-    });
-
-    closeButton.addEventListener("click", () => {
+    closeButton.onclick = () => {
 
         modal.classList.remove("show");
 
-    });
+    };
 
-    sendButton.addEventListener("click", () => {
+    modal.onclick = e => {
 
-        if (!currentPost) return;
+        if (e.target === modal) {
+
+            modal.classList.remove("show");
+
+        }
+
+    };
+
+    sendButton.onclick = async () => {
+
+        if (!selectedPostId) return;
 
         const text = commentInput.value.trim();
 
-        if (text === "") return;
+        if (!text) return;
 
-        currentPost.comments.push({
+        await addComment(
 
-            name: "Anda",
+            selectedPostId,
 
-            text: text
+            {
+
+                uid: currentUser.uid,
+
+                name: currentUser.fullName,
+
+                avatar: currentUser.avatar,
+
+                text,
+
+                time: Date.now()
+
+            }
+
+        );
+
+        commentInput.value = "";
+
+        const latest = await getPost(selectedPostId);
+
+        commentList.innerHTML = "";
+
+        (latest.comments || []).forEach(comment => {
+
+            commentList.innerHTML += `
+
+<div class="comment-item">
+
+<b>${comment.name}</b>
+
+<p>${comment.text}</p>
+
+</div>
+
+`;
 
         });
 
-        savePosts();
-
-        commentList.innerHTML += `
-
-            <div class="comment-item">
-
-                <b>Anda</b>
-
-                <p>${text}</p>
-
-            </div>
-
-        `;
-
         const counter = document.querySelector(
-            '.comment-btn[data-id="' + currentPost.id + '"]'
+
+            '.comment-btn[data-id="' +
+
+            selectedPostId +
+
+            '"] span'
+
         );
 
         if (counter) {
 
-            counter.innerHTML = `💬 <span>${currentPost.comments.length}</span>`;
+            counter.textContent =
+
+                latest.comments?.length || 0;
 
         }
 
-        commentInput.value = "";
+    };
 
-        commentList.scrollTop = commentList.scrollHeight;
+        // =====================================
+    // POST MENU
+    // =====================================
 
-    });
+    const postMenu = document.getElementById("postMenu");
 
-// =========================
-// IMAGE PREVIEW
-// =========================
+    const closePostMenu = document.getElementById("closePostMenu");
 
-const preview = document.getElementById("imagePreview");
-const previewImg = document.getElementById("previewImg");
-const closePreview = document.getElementById("closePreview");
+    const deletePostBtn = document.getElementById("deletePostBtn");
 
-document.querySelectorAll(".post-image").forEach(img => {
+    const editPostBtn = document.getElementById("editPostBtn");
 
-    img.addEventListener("click", () => {
+    const editModal = document.getElementById("editPostModal");
 
-        preview.classList.add("show");
+    const editInput = document.getElementById("editCaptionInput");
 
-        previewImg.src = img.src;
+    const cancelEdit = document.getElementById("cancelEditPost");
 
-    });
+    const saveEdit = document.getElementById("saveEditPost");
 
-});
+    const {
 
-closePreview.addEventListener("click", () => {
+        deletePost,
 
-    preview.classList.remove("show");
+        updatePost
 
-});
+    } = await import("../data/posts.js");
 
-preview.addEventListener("click", (e) => {
+    let selectedPostId = null;
 
-    if (e.target === preview) {
+    document
 
-        preview.classList.remove("show");
+        .querySelectorAll(".post-menu-btn")
 
-    }
+        .forEach(btn => {
 
-});
+            btn.onclick = () => {
 
-// =========================
-// POST MENU
-// =========================
+                selectedPostId = btn.dataset.id;
 
-const postMenu = document.getElementById("postMenu");
+                postMenu.classList.add("show");
 
-const closePostMenu = document.getElementById("closePostMenu");
-
-const deletePostBtn = document.getElementById("deletePostBtn");
-
-const editPostBtn = document.getElementById("editPostBtn");
-
-const editPostModal = document.getElementById("editPostModal");
-
-const editCaptionInput = document.getElementById("editCaptionInput");
-
-const cancelEditPost = document.getElementById("cancelEditPost");
-
-const saveEditPost = document.getElementById("saveEditPost");
-
-let selectedPostId = null;
-
-document.querySelectorAll(".post-menu-btn").forEach(btn => {
-
-    btn.addEventListener("click", () => {
-
-        selectedPostId = Number(btn.dataset.id);
-
-        postMenu.classList.add("show");
-
-    });
-
-});
-
-closePostMenu.addEventListener("click", () => {
-
-    postMenu.classList.remove("show");
-
-});
-
-postMenu.addEventListener("click", (e) => {
-
-    if (e.target === postMenu) {
-
-        postMenu.classList.remove("show");
-
-    }
-
-});
-
-
-// =========================
-// DELETE POST
-// =========================
-
-deletePostBtn.addEventListener("click", () => {
-
-    if (selectedPostId === null) return;
-
-    const yakin = confirm(
-        "Yakin ingin menghapus postingan ini?"
-    );
-
-    if (!yakin) return;
-
-    deletePost(selectedPostId);
-
-    if (currentUser) {
-
-        updateMember(currentUser.id, {
-
-            posting: Math.max(
-                0,
-                (currentUser.posting || 1) - 1
-            )
+            };
 
         });
 
+    closePostMenu.onclick = () => {
+
+        postMenu.classList.remove("show");
+
+    };
+
+    postMenu.onclick = e => {
+
+        if (e.target === postMenu) {
+
+            postMenu.classList.remove("show");
+
+        }
+
+    };
+
+    // ===========================
+    // DELETE POST
+    // ===========================
+
+    deletePostBtn.onclick = async () => {
+
+        if (!selectedPostId) return;
+
+        if (!confirm("Yakin ingin menghapus postingan ini?")) {
+
+            return;
+
+        }
+
+        await deletePost(selectedPostId);
+
+        postMenu.classList.remove("show");
+
+        renderHome();
+
+    };
+
+    // ===========================
+    // EDIT CAPTION
+    // ===========================
+
+    editPostBtn.onclick = async () => {
+
+        const post = await getPost(selectedPostId);
+
+        if (!post) return;
+
+        editInput.value = post.caption || "";
+
+        postMenu.classList.remove("show");
+
+        editModal.classList.add("show");
+
+    };
+
+    cancelEdit.onclick = () => {
+
+        editModal.classList.remove("show");
+
+    };
+
+    editModal.onclick = e => {
+
+        if (e.target === editModal) {
+
+            editModal.classList.remove("show");
+
+        }
+
+    };
+
+    saveEdit.onclick = async () => {
+
+        const caption = editInput.value.trim();
+
+        if (!caption) {
+
+            alert("Caption tidak boleh kosong.");
+
+            return;
+
+        }
+
+        await updatePost(
+
+            selectedPostId,
+
+            {
+
+                caption
+
+            }
+
+        );
+
+        editModal.classList.remove("show");
+
+        renderHome();
+
+    };
+
+        // =====================================
+    // BOTTOM NAVIGATION
+    // =====================================
+
+    const navHome = document.getElementById("nav-home");
+    const navSearch = document.getElementById("nav-search");
+    const navAdd = document.getElementById("nav-add");
+    const navChat = document.getElementById("nav-chat");
+    const navProfile = document.getElementById("nav-profile");
+
+    if (navHome) {
+
+        navHome.onclick = () => {
+
+            renderHome();
+
+        };
+
     }
 
-    postMenu.classList.remove("show");
+    if (navSearch) {
 
-    renderHome();
+        navSearch.onclick = async () => {
 
-});
+            const { navigate } = await import("../router.js");
 
-// =========================
-// EDIT CAPTION
-// =========================
+            navigate("search");
 
-editPostBtn.addEventListener("click", () => {
-
-    const post = posts.find(
-
-        p => p.id === selectedPostId
-
-    );
-
-    if (!post) return;
-
-    editCaptionInput.value = post.caption;
-
-    postMenu.classList.remove("show");
-
-    editPostModal.classList.add("show");
-
-});
-
-cancelEditPost.addEventListener("click", () => {
-
-    editPostModal.classList.remove("show");
-
-});
-
-saveEditPost.addEventListener("click", () => {
-
-    const post = posts.find(
-
-        p => p.id === selectedPostId
-
-    );
-
-    if (!post) return;
-
-    const caption = editCaptionInput.value.trim();
-
-    if (caption === "") {
-
-        alert("Caption tidak boleh kosong.");
-
-        return;
+        };
 
     }
 
-    post.caption = caption;
+    if (navAdd) {
 
-    savePosts();
+        navAdd.onclick = async () => {
 
-    editPostModal.classList.remove("show");
+            const { navigate } = await import("../router.js");
 
-    renderHome();
+            navigate("posting");
 
-});
-
-editPostModal.addEventListener("click", (e) => {
-
-    if (e.target === editPostModal) {
-
-        editPostModal.classList.remove("show");
+        };
 
     }
 
-});
+    if (navChat) {
+
+        navChat.onclick = async () => {
+
+            const { navigate } = await import("../router.js");
+
+            navigate("chat");
+
+        };
+
+    }
+
+    if (navProfile) {
+
+        navProfile.onclick = async () => {
+
+            const { navigate } = await import("../router.js");
+
+            navigate("profile");
+
+        };
+
+    };
 
 }

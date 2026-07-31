@@ -1,15 +1,7 @@
 import { navigate } from "../router.js";
 
-import { auth, db } from "../services/firebase.js";
-
-import {
-    createUserWithEmailAndPassword
-} from "firebase/auth";
-
-import {
-    doc,
-    setDoc
-} from "firebase/firestore";
+import { register } from "../services/firebaseAuth.js";
+import { addMember } from "../services/firestore.js";
 
 export function renderRegister() {
 
@@ -49,21 +41,14 @@ export function renderRegister() {
                 placeholder="Password">
 
             <button id="registerBtn">
-
                 Daftar
-
             </button>
 
             <p class="register-text">
-
                 Sudah punya akun?
-
                 <span id="loginLink">
-
                     Masuk
-
                 </span>
-
             </p>
 
         </div>
@@ -72,107 +57,126 @@ export function renderRegister() {
 
     `;
 
-    document
-        .getElementById("registerBtn")
-        .onclick = async () => {
+    document.getElementById("registerBtn").onclick = async () => {
 
-            const fullName =
-                document.getElementById("fullname").value.trim();
+        const fullName =
+            document.getElementById("fullname").value.trim();
 
-            const username =
-                document.getElementById("username").value.trim();
+        const username =
+            document.getElementById("username").value.trim();
 
-            const email =
-                document.getElementById("email").value.trim();
+        const email =
+            document.getElementById("email").value.trim();
 
-            const phone =
-                document.getElementById("phone").value.trim();
+        const phone =
+            document.getElementById("phone").value.trim();
 
-            const password =
-                document.getElementById("password").value.trim();
+        const password =
+            document.getElementById("password").value.trim();
 
-            if (
-                !fullName ||
-                !username ||
-                !email ||
-                !phone ||
-                !password
-            ) {
+        if (
+            !fullName ||
+            !username ||
+            !email ||
+            !phone ||
+            !password
+        ) {
 
-                alert("Semua data wajib diisi.");
+            alert("Semua data wajib diisi.");
 
-                return;
+            return;
 
-            }
+        }
 
-            try {
+        try {
 
-                const userCredential =
-                    await createUserWithEmailAndPassword(
-                        auth,
-                        email,
-                        password
-                    );
+            // ==========================
+            // Firebase Authentication
+            // ==========================
 
-                const user = userCredential.user;
+            const credential = await register(email, password);
 
-                await setDoc(
-                    doc(db, "users", user.uid),
-                    {
+            const uid = credential.user.uid;
 
-                        uid: user.uid,
+            // ==========================
+            // Firestore
+            // ==========================
 
-                        fullName,
+            const member = {
 
-                        username,
+                uid,
+                id: uid,
 
-                        email,
+                fullName,
+                username,
+                email,
+                phone,
 
-                        phone,
+                avatar: "assets/default-avatar.png",
 
-                        avatar: "assets/default-avatar.png",
+                bio: "Selamat datang di REGE Official 🚀",
 
-                        bio: "Selamat datang di REGE Official 🚀",
+                jabatan: "Anggota",
 
-                        jabatan: "Anggota",
+                role: "Member",
 
-                        role: "Member",
+                hadir: 0,
 
-                        hadir: 0,
+                tidakHadir: 0,
 
-                        tidakHadir: 0,
+                terlambat: 0,
 
-                        terlambat: 0,
+                posting: 0,
 
-                        posting: 0,
+                followers: 0,
 
-                        approved: true,
+                following: 0,
 
-                        createdAt: new Date()
+                approved: true,
 
-                    }
-                );
+                createdAt: new Date().toISOString()
 
-                alert("Registrasi berhasil!");
+            };
 
-                navigate("login");
+            await addMember(member);
 
-            } catch (error) {
-
-                console.error(error);
-
-                alert(error.message);
-
-            }
-
-        };
-
-    document
-        .getElementById("loginLink")
-        .onclick = () => {
+            alert("Registrasi berhasil.");
 
             navigate("login");
 
-        };
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            switch (error.code) {
+
+                case "auth/email-already-in-use":
+                    alert("Email sudah digunakan.");
+                    break;
+
+                case "auth/weak-password":
+                    alert("Password minimal 6 karakter.");
+                    break;
+
+                case "auth/invalid-email":
+                    alert("Format email tidak valid.");
+                    break;
+
+                default:
+                    alert(error.message);
+
+            }
+
+        }
+
+    };
+
+    document.getElementById("loginLink").onclick = () => {
+
+        navigate("login");
+
+    };
 
 }

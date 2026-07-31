@@ -1,15 +1,9 @@
 import { navigate } from "../router.js";
 
-import { auth, db } from "../services/firebase.js";
+import { login } from "../services/firebaseAuth.js";
+import { getMember } from "../services/firestore.js";
 
-import { signInWithEmailAndPassword } from "firebase/auth";
-
-import { doc, getDoc } from "firebase/firestore";
-
-import {
-    setCurrentUser,
-    saveCurrentUser
-} from "../data/currentUser.js";
+import { setCurrentUser } from "../data/currentUser.js";
 
 export function renderLogin() {
 
@@ -57,95 +51,97 @@ export function renderLogin() {
 
     `;
 
-    document
-        .getElementById("loginBtn")
-        .onclick = async () => {
+    // ==========================
+    // LOGIN
+    // ==========================
 
-            const email =
-                document.getElementById("email").value.trim();
+    document.getElementById("loginBtn").onclick = async () => {
 
-            const password =
-                document.getElementById("password").value.trim();
+        const email = document.getElementById("email").value.trim();
 
-            if (!email || !password) {
+        const password = document.getElementById("password").value.trim();
 
-                alert("Email dan password wajib diisi.");
+        if (!email || !password) {
+
+            alert("Email dan password wajib diisi.");
+
+            return;
+
+        }
+
+        try {
+
+            // Login Firebase Auth
+            const credential = await login(email, password);
+
+            const uid = credential.user.uid;
+
+            // Ambil data user dari Firestore
+            const user = await getMember(uid);
+
+            if (!user) {
+
+                alert("Data pengguna tidak ditemukan.");
 
                 return;
 
             }
 
-            try {
+            // Pastikan uid & id selalu ada
+            user.uid = uid;
+            user.id = uid;
 
-                const userCredential =
-                    await signInWithEmailAndPassword(
-                        auth,
-                        email,
-                        password
-                    );
+            console.log("LOGIN USER =", user);
 
-                const uid = userCredential.user.uid;
+            // Simpan ke sessionStorage
+            setCurrentUser(user);
 
-                const docRef = doc(db, "users", uid);
+            navigate("home");
 
-                const docSnap = await getDoc(docRef);
+        } catch (error) {
 
-                if (!docSnap.exists()) {
+            console.error(error);
 
-                    alert("Data pengguna tidak ditemukan.");
+            switch (error.code) {
 
-                    return;
+                case "auth/user-not-found":
+                    alert("Email belum terdaftar.");
+                    break;
 
-                }
+                case "auth/wrong-password":
+                    alert("Password salah.");
+                    break;
 
-                const user = docSnap.data();
+                case "auth/invalid-credential":
+                    alert("Email atau password salah.");
+                    break;
 
-                setCurrentUser(user);
+                case "auth/invalid-email":
+                    alert("Format email tidak valid.");
+                    break;
 
-                saveCurrentUser();
+                case "auth/too-many-requests":
+                    alert("Terlalu banyak percobaan login.");
+                    break;
 
-                localStorage.setItem("isLogin", "true");
-
-                navigate("home");
-
-            } catch (error) {
-
-                console.error(error);
-
-                switch (error.code) {
-
-                    case "auth/user-not-found":
-                        alert("Email belum terdaftar.");
-                        break;
-
-                    case "auth/wrong-password":
-                        alert("Password salah.");
-                        break;
-
-                    case "auth/invalid-credential":
-                        alert("Email atau password salah.");
-                        break;
-
-                    case "auth/invalid-email":
-                        alert("Format email tidak valid.");
-                        break;
-
-                    default:
-                        alert("Gagal login.");
-                        break;
-
-                }
+                default:
+                    alert(error.message);
+                    break;
 
             }
 
-        };
+        }
 
-    document
-        .getElementById("registerLink")
-        .onclick = () => {
+    };
 
-            navigate("register");
+    // ==========================
+    // REGISTER
+    // ==========================
 
-        };
+    document.getElementById("registerLink").onclick = () => {
+
+        navigate("register");
+
+    };
 
 }

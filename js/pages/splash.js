@@ -1,18 +1,11 @@
 import { navigate } from "../router.js";
+import { getCurrentUser } from "../data/currentUser.js";
 
 export function renderSplash() {
 
-    const isLogin =
-        localStorage.getItem("isLogin") === "true";
+    const user = getCurrentUser();
 
-    const currentUser = JSON.parse(
-
-        localStorage.getItem("currentUser")
-
-    );
-
-    const nama =
-        currentUser?.fullName || "Sahabat REGE";
+    const nama = user?.fullName || "Sahabat REGE";
 
     document.getElementById("app").innerHTML = `
 
@@ -46,9 +39,8 @@ export function renderSplash() {
             </p>
 
             ${
-                isLogin
+                user
                     ? `
-
                     <p class="welcome-text">
 
                         Selamat Datang,
@@ -56,7 +48,6 @@ export function renderSplash() {
                         <b>${nama}</b> 👋
 
                     </p>
-
                     `
                     : ""
             }
@@ -64,9 +55,7 @@ export function renderSplash() {
             <div class="loading">
 
                 <span></span>
-
                 <span></span>
-
                 <span></span>
 
             </div>
@@ -85,16 +74,20 @@ export function renderSplash() {
 
     setTimeout(() => {
 
-        if (isLogin) {
+        if (user) {
+
+            console.log("➡️ Splash → Home");
 
             navigate("home");
 
         } else {
 
+            console.log("➡️ Splash → Login");
+
             navigate("login");
 
         }
 
-    }, 2500);
+    }, 1500);
 
 }

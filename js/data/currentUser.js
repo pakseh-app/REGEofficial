@@ -1,115 +1,103 @@
-export let currentUser = {
+// =====================================
+// CURRENT USER
+// =====================================
 
-    id: "",
+const STORAGE_KEY = "rege_current_user";
 
-    fullName: "",
-
-    username: "",
-
-    phone: "",
-
-    avatar: "assets/default-avatar.png",
-
-    bio: "Selamat datang di REGE Official 🚀",
-
-    jabatan: "Anggota",
-
-    role: "Member",
-
-    hadir: 0,
-
-    tidakHadir: 0,
-
-    terlambat: 0
-
-};
-
-// ===============================
-// SET USER AKTIF
-// ===============================
+// =====================================
+// SIMPAN USER
+// =====================================
 
 export function setCurrentUser(user) {
 
-    currentUser = {
+    if (!user) return;
 
-        ...user
+    sessionStorage.setItem(
 
-    };
+        STORAGE_KEY,
 
-}
-
-// ===============================
-// SIMPAN
-// ===============================
-
-export function saveCurrentUser() {
-
-    localStorage.setItem(
-
-        "currentUser",
-
-        JSON.stringify(currentUser)
+        JSON.stringify(user)
 
     );
 
 }
 
-// ===============================
-// LOAD
-// ===============================
+// =====================================
+// AMBIL USER
+// =====================================
 
-export function loadCurrentUser() {
+export function getCurrentUser() {
 
-    const data = localStorage.getItem("currentUser");
+    const data = sessionStorage.getItem(STORAGE_KEY);
 
-    if (!data) return;
+    if (!data) {
+
+        return null;
+
+    }
 
     try {
 
-        currentUser = JSON.parse(data);
+        return JSON.parse(data);
 
     } catch (err) {
 
-        console.error("Gagal membaca currentUser:", err);
+        console.error(err);
 
-        localStorage.removeItem("currentUser");
+        sessionStorage.removeItem(STORAGE_KEY);
+
+        return null;
 
     }
 
 }
 
-// ===============================
-// LOGOUT
-// ===============================
+// =====================================
+// UPDATE USER LOKAL
+// =====================================
 
-export function clearCurrentUser() {
+export function updateCurrentUser(data) {
 
-    currentUser = {
+    const user = getCurrentUser();
 
-        id: "",
+    if (!user) return;
 
-        fullName: "",
+    const newUser = {
 
-        username: "",
+        ...user,
 
-        phone: "",
-
-        avatar: "assets/default-avatar.png",
-
-        bio: "Selamat datang di REGE Official 🚀",
-
-        jabatan: "Anggota",
-
-        role: "Member",
-
-        hadir: 0,
-
-        tidakHadir: 0,
-
-        terlambat: 0
+        ...data
 
     };
 
-    localStorage.removeItem("currentUser");
+    sessionStorage.setItem(
+
+        STORAGE_KEY,
+
+        JSON.stringify(newUser)
+
+    );
+
+    return newUser;
+
+}
+
+// =====================================
+// HAPUS USER
+// =====================================
+
+export function clearCurrentUser() {
+
+    sessionStorage.removeItem(STORAGE_KEY);
+
+}
+
+// =====================================
+// STATUS LOGIN
+// =====================================
+
+export function isLoggedIn() {
+
+    return getCurrentUser() !== null;
 
 }

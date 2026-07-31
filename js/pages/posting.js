@@ -1,12 +1,27 @@
 import { Navbar } from "../components/navbar.js";
 import { BottomNav } from "../components/bottomNav.js";
 import { renderSidebar } from "../components/sidebar.js";
+
 import { addPost } from "../data/posts.js";
-import { getCurrentMember, updateMember } from "../data/members.js";
+import { updateMember } from "../data/members.js";
+import {
+    getCurrentUser,
+    updateCurrentUser
+} from "../data/currentUser.js";
+
 import { uploadImage } from "../services/cloudinary.js";
 import { navigate } from "../router.js";
 
 export function renderPosting() {
+
+    const user = getCurrentUser();
+
+    if (!user) {
+
+        navigate("login");
+        return;
+
+    }
 
     document.getElementById("app").innerHTML = `
 
@@ -34,7 +49,8 @@ export function renderPosting() {
 
                 <textarea
                     id="captionInput"
-                    placeholder="Apa yang sedang kamu pikirkan?"></textarea>
+                    placeholder="Apa yang sedang kamu pikirkan?">
+                </textarea>
 
                 <button id="publishBtn">
 
@@ -55,14 +71,14 @@ export function renderPosting() {
     renderSidebar();
 
     const imageInput = document.getElementById("imageInput");
-    const preview = document.getElementById("previewImage");
+    const previewImage = document.getElementById("previewImage");
     const publishBtn = document.getElementById("publishBtn");
 
     let isPublishing = false;
 
-    // ==========================
-    // Preview
-    // ==========================
+    // =========================
+    // PREVIEW FOTO
+    // =========================
 
     imageInput.addEventListener("change", () => {
 
@@ -70,31 +86,18 @@ export function renderPosting() {
 
         if (!file) return;
 
-        preview.src = URL.createObjectURL(file);
-
-        preview.style.display = "block";
+        previewImage.src = URL.createObjectURL(file);
+        previewImage.style.display = "block";
 
     });
 
-    // ==========================
-    // Publish
-    // ==========================
+    // =========================
+    // PUBLISH
+    // =========================
 
     publishBtn.addEventListener("click", async () => {
 
         if (isPublishing) return;
-
-        const user = getCurrentMember();
-
-        if (!user) {
-
-            alert("Silakan login kembali.");
-
-            navigate("login");
-
-            return;
-
-        }
 
         const file = imageInput.files[0];
 
@@ -103,9 +106,17 @@ export function renderPosting() {
             .value
             .trim();
 
-        if (!file || caption === "") {
+        if (!file) {
 
-            alert("Pilih gambar dan isi caption.");
+            alert("Pilih gambar.");
+
+            return;
+
+        }
+
+        if (!caption) {
+
+            alert("Caption tidak boleh kosong.");
 
             return;
 
@@ -116,19 +127,17 @@ export function renderPosting() {
             isPublishing = true;
 
             publishBtn.disabled = true;
-
             publishBtn.textContent = "Mengupload...";
 
-            // Upload ke Cloudinary
             const imageUrl = await uploadImage(file);
 
             publishBtn.textContent = "Menyimpan...";
 
-            addPost({
+            await addPost({
 
-                id: Date.now(),
+                uid: user.uid,
 
-                memberId: user.id,
+                memberId: user.uid,
 
                 name: user.fullName,
 
@@ -136,9 +145,7 @@ export function renderPosting() {
 
                 image: imageUrl,
 
-                caption: caption,
-
-                time: Date.now(),
+                caption,
 
                 likes: 0,
 
@@ -146,36 +153,37 @@ export function renderPosting() {
 
                 comments: [],
 
+                createdAt: Date.now(),
+
                 isMe: true
 
             });
 
-            updateMember(user.id, {
+            const totalPosting = (user.posting || 0) + 1;
 
-                posting: (user.posting || 0) + 1
+            await updateMember(user.uid, {
+
+                posting: totalPosting
 
             });
 
-            user.posting = (user.posting || 0) + 1;
+            updateCurrentUser({
 
-            localStorage.setItem(
+                posting: totalPosting
 
-                "currentUser",
-
-                JSON.stringify(user)
-
-            );
+            });
 
             navigate("home");
 
-        } catch (err) {
+        }
+
+        catch (err) {
 
             console.error(err);
 
-            alert("Upload gambar gagal.");
+            alert("Gagal membuat postingan.");
 
             publishBtn.disabled = false;
-
             publishBtn.textContent = "Publish";
 
             isPublishing = false;

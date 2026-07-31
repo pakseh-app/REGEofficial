@@ -1,96 +1,216 @@
-const STORAGE_KEY = "rege_posts";
+import {
+    collection,
+    doc,
+    addDoc,
+    getDocs,
+    getDoc,
+    updateDoc,
+    deleteDoc,
+    arrayUnion,
+    arrayRemove,
+    increment,
+    query,
+    orderBy,
+    serverTimestamp
+} from "firebase/firestore";
 
-// ===================================
-// Default Data
-// ===================================
+import { db } from "../services/firebase.js";
 
-const defaultPosts = [];
+// ======================================
+// COLLECTION
+// ======================================
 
-// ===================================
-// Load
-// ===================================
+const postsRef = collection(db, "posts");
 
-export function loadPosts() {
+// ======================================
+// GET ALL POSTS
+// ======================================
 
-    const data = localStorage.getItem(STORAGE_KEY);
+export async function getPosts() {
 
-    if (!data) {
+    const q = query(
+        postsRef,
+        orderBy("createdAt", "desc")
+    );
 
-        localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(defaultPosts)
-        );
+    const snapshot = await getDocs(q);
 
-        return [...defaultPosts];
+    return snapshot.docs.map(doc => ({
+
+        id: doc.id,
+
+        ...doc.data()
+
+    }));
+
+}
+
+// ======================================
+// GET POST
+// ======================================
+
+export async function getPost(id) {
+
+    const snapshot = await getDoc(
+
+        doc(db, "posts", id)
+
+    );
+
+    if (!snapshot.exists()) {
+
+        return null;
 
     }
 
-    let savedPosts = JSON.parse(data);
+    return {
 
-    // Hapus posting dummy lama
-    savedPosts = savedPosts.filter(post => post.isMe === true);
+        id: snapshot.id,
 
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(savedPosts)
+        ...snapshot.data()
+
+    };
+
+}
+
+// ======================================
+// ADD POST
+// ======================================
+
+export async function addPost(post) {
+
+    if (!post.uid) {
+
+        throw new Error("UID posting kosong.");
+
+    }
+
+    const docRef = await addDoc(
+
+        postsRef,
+
+        {
+
+            uid: post.uid,
+
+            memberId: post.memberId,
+
+            name: post.name,
+
+            avatar: post.avatar,
+
+            caption: post.caption,
+
+            image: post.image,
+
+            likes: 0,
+
+            likedBy: [],
+
+            comments: [],
+
+            isMe: true,
+
+            createdAt: serverTimestamp()
+
+        }
+
     );
 
-    return savedPosts;
+    return docRef.id;
 
 }
 
-// ===================================
-// Variabel utama
-// ===================================
+// ======================================
+// UPDATE POST
+// ======================================
 
-export let posts = loadPosts();
+export async function updatePost(id, data) {
 
-// ===================================
-// Simpan
-// ===================================
+    await updateDoc(
 
-export function savePosts() {
+        doc(db, "posts", id),
 
-    localStorage.setItem(
-
-        STORAGE_KEY,
-
-        JSON.stringify(posts)
+        data
 
     );
 
 }
 
-// ===================================
-// Tambah posting
-// ===================================
+// ======================================
+// DELETE POST
+// ======================================
 
-export function addPost(post) {
+export async function deletePost(id) {
 
-    posts.unshift(post);
+    await deleteDoc(
 
-    savePosts();
+        doc(db, "posts", id)
 
-}
-
-// ===================================
-// Ambil posting
-// ===================================
-
-export function getPost(id) {
-
-    return posts.find(post => post.id == id);
+    );
 
 }
 
-// ===================================
-// Hapus posting
-// ===================================
+// ======================================
+// LIKE
+// ======================================
 
-export function deletePost(id) {
+export async function likePost(postId, uid) {
 
-    posts = posts.filter(post => post.id != id);
+    await updateDoc(
 
-    savePosts();
+        doc(db, "posts", postId),
+
+        {
+
+            likes: increment(1),
+
+            likedBy: arrayUnion(uid)
+
+        }
+
+    );
+
+}
+
+// ======================================
+// UNLIKE
+// ======================================
+
+export async function unlikePost(postId, uid) {
+
+    await updateDoc(
+
+        doc(db, "posts", postId),
+
+        {
+
+            likes: increment(-1),
+
+            likedBy: arrayRemove(uid)
+
+        }
+
+    );
+
+}
+
+// ======================================
+// COMMENT
+// ======================================
+
+export async function addComment(postId, comment) {
+
+    await updateDoc(
+
+        doc(db, "posts", postId),
+
+        {
+
+            comments: arrayUnion(comment)
+
+        }
+
+    );
 
 }

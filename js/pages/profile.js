@@ -1,17 +1,30 @@
 import { Navbar } from "../components/navbar.js";
 import { BottomNav } from "../components/bottomNav.js";
 import { renderSidebar } from "../components/sidebar.js";
-import { updateMember } from "../data/members.js";
 import { CropModal } from "../components/cropModal.js";
+
 import { uploadImage } from "../services/cloudinary.js";
 
-import {
-    currentUser,
-    loadCurrentUser,
-    saveCurrentUser
-} from "../data/currentUser.js";
+import { getCurrentUser } from "../data/currentUser.js";
+import { updateMember } from "../data/members.js";
+
+import { navigate } from "../router.js";
 
 export function renderProfile() {
+
+    const user = getCurrentUser();
+
+    console.log("PROFILE USER =", user);
+    console.log("PROFILE UID =", user.uid);
+    console.log("PROFILE ID =", user.id);
+
+    if (!user) {
+
+        navigate("login");
+
+        return;
+
+    }
 
     document.getElementById("app").innerHTML = `
 
@@ -30,7 +43,7 @@ export function renderProfile() {
                     <img
                         id="profileAvatar"
                         class="profile-avatar"
-                        src="https://i.pravatar.cc/200?img=5">
+                        src="${user.avatar}">
 
                     <label
                         for="photoInput"
@@ -50,13 +63,13 @@ export function renderProfile() {
 
                 <h2 id="profileName">
 
-                    REGE Official
+                    ${user.fullName}
 
                 </h2>
 
                 <p id="profileBio">
 
-                    Selamat datang di REGE Official 🚀
+                    ${user.bio}
 
                 </p>
 
@@ -64,7 +77,7 @@ export function renderProfile() {
 
                     <div>
 
-                        <h3>12</h3>
+                        <h3>${user.posting || 0}</h3>
 
                         <small>Posting</small>
 
@@ -72,7 +85,7 @@ export function renderProfile() {
 
                     <div>
 
-                        <h3>1.2K</h3>
+                        <h3>${user.followers || 0}</h3>
 
                         <small>Followers</small>
 
@@ -80,7 +93,7 @@ export function renderProfile() {
 
                     <div>
 
-                        <h3>530</h3>
+                        <h3>${user.following || 0}</h3>
 
                         <small>Following</small>
 
@@ -98,7 +111,7 @@ export function renderProfile() {
 
         </main>
 
-                ${BottomNav()}
+        ${BottomNav()}
 
         ${CropModal()}
 
@@ -107,15 +120,14 @@ export function renderProfile() {
     `;
 
     renderSidebar();
-    loadCurrentUser();
-
-// ===============================
-// LOAD FOTO PROFIL
+ 
+    // ===============================
+// FOTO PROFIL
 // ===============================
 
 const avatar = document.getElementById("profileAvatar");
 
-avatar.src = currentUser.avatar;
+avatar.src = user.avatar || "assets/default-avatar.png";
 
 // ===============================
 // CROPPER
@@ -123,71 +135,61 @@ avatar.src = currentUser.avatar;
 
 let cropper = null;
 
-const cropModal =
-    document.getElementById("cropModal");
-
-const cropImage =
-    document.getElementById("cropImage");
-
-const saveCrop =
-    document.getElementById("saveCrop");
-
-const cancelCrop =
-    document.getElementById("cancelCrop");
+const cropModal = document.getElementById("cropModal");
+const cropImage = document.getElementById("cropImage");
+const saveCrop = document.getElementById("saveCrop");
+const cancelCrop = document.getElementById("cancelCrop");
 
 // ===============================
-// GANTI FOTO
+// PILIH FOTO
 // ===============================
 
-    document
-    .getElementById("photoInput")
-    .addEventListener("change", function(){
+document.getElementById("photoInput").addEventListener("change", (e) => {
 
-        const file = this.files[0];
+    const file = e.target.files[0];
 
-        if(!file) return;
+    if (!file) return;
 
-        const reader = new FileReader();
+    const reader = new FileReader();
 
-        reader.onload = function(e){
+    reader.onload = (event) => {
 
-            cropModal.classList.add("show");
+        cropModal.classList.add("show");
 
-            cropImage.src = e.target.result;
+        cropImage.src = event.target.result;
 
-            if(cropper){
+        if (cropper) {
 
-                cropper.destroy();
+            cropper.destroy();
 
-            }
+        }
 
-            cropper = new Cropper(cropImage,{
+        cropper = new Cropper(cropImage, {
 
-                aspectRatio:1,
+            aspectRatio: 1,
+            viewMode: 1,
+            dragMode: "move",
+            autoCropArea: 1,
+            responsive: true,
+            background: false
 
-                viewMode:1,
+        });
 
-                dragMode:"move",
+    };
 
-                autoCropArea:1,
+    reader.readAsDataURL(file);
 
-                responsive:true,
+});
 
-                background:false
+// ===============================
+// BATAL CROP
+// ===============================
 
-            });
-
-        };
-
-        reader.readAsDataURL(file);
-
-    });
-
-cancelCrop.onclick = ()=>{
+cancelCrop.onclick = () => {
 
     cropModal.classList.remove("show");
 
-    if(cropper){
+    if (cropper) {
 
         cropper.destroy();
 
@@ -197,6 +199,10 @@ cancelCrop.onclick = ()=>{
 
 };
 
+// ===============================
+// SIMPAN FOTO
+// ===============================
+
 saveCrop.onclick = async () => {
 
     if (!cropper) return;
@@ -204,67 +210,56 @@ saveCrop.onclick = async () => {
     try {
 
         saveCrop.disabled = true;
-
         saveCrop.textContent = "Mengupload...";
 
         const canvas = cropper.getCroppedCanvas({
 
             width: 500,
-
             height: 500
 
         });
 
-        // Canvas -> Blob
         const blob = await new Promise(resolve =>
-
             canvas.toBlob(resolve, "image/webp", 0.9)
-
         );
 
-        // Blob -> File
         const file = new File(
-
             [blob],
-
             "avatar.webp",
-
             {
-
                 type: "image/webp"
-
             }
-
         );
 
-        // Upload ke Cloudinary
         const imageUrl = await uploadImage(file);
 
-        // Update tampilan
+        // update tampilan
         avatar.src = imageUrl;
 
-        // Simpan current user
-        currentUser.avatar = imageUrl;
+        // update object user
+        user.avatar = imageUrl;
 
-        saveCurrentUser();
+        // simpan ke sessionStorage
+        sessionStorage.setItem(
+            "rege_current_user",
+            JSON.stringify(user)
+        );
 
-        // Update member
-        updateMember(currentUser.id, {
+        console.log("UPDATE PROFILE =", user);
+
+        // update Firestore
+        await updateMember(user.uid, {
 
             avatar: imageUrl
 
         });
 
-        // Tutup modal
         cropModal.classList.remove("show");
 
         cropper.destroy();
-
         cropper = null;
 
-        // Reset tombol
         saveCrop.disabled = false;
-
         saveCrop.textContent = "Simpan";
 
         alert("✅ Foto profil berhasil diperbarui.");
@@ -276,57 +271,63 @@ saveCrop.onclick = async () => {
         alert("Upload avatar gagal.");
 
         saveCrop.disabled = false;
-
         saveCrop.textContent = "Simpan";
 
     }
 
 };
 
-    // ===============================
-    // EDIT NAMA
-    // ===============================
+// ===============================
+// EDIT NAMA & BIO
+// ===============================
 
-    document.getElementById("profileName").textContent =
-    currentUser.fullName;
+document.getElementById("profileName").textContent = user.fullName;
 
-    document.getElementById("profileBio").textContent =
-    currentUser.bio;
+document.getElementById("profileBio").textContent = user.bio || "";
 
-    document
-        .getElementById("editProfile")
-        .onclick = ()=>{
+document.getElementById("editProfile").onclick = async () => {
 
-            const nama = prompt(
-                "Nama Baru",
-                document.getElementById("profileName").textContent
-            );
+    const nama = prompt(
+        "Nama Baru",
+        user.fullName
+    );
 
-            if(!nama) return;
+    if (!nama) return;
 
-            const bio = prompt(
-                "Bio Baru",
-                document.getElementById("profileBio").textContent
-            );
+    const bio = prompt(
+        "Bio Baru",
+        user.bio || ""
+    );
 
-            document.getElementById("profileName").textContent = nama;
+    document.getElementById("profileName").textContent = nama;
+    document.getElementById("profileBio").textContent = bio || "";
 
-            document.getElementById("profileBio").textContent = bio;
+    user.fullName = nama;
+    user.bio = bio || "";
 
-            currentUser.fullName = nama;
+    try {
 
-currentUser.bio = bio;
+        await updateMember(user.uid, {
 
-saveCurrentUser();
+            fullName: nama,
+            bio: bio || ""
 
-updateMember(currentUser.id,{
+        });
 
-    fullName:nama,
+        alert("✅ Profil berhasil diperbarui.");
 
-    bio:bio
+    } catch (err) {
 
-});
+        console.error(err);
 
-        };
+        alert("Gagal memperbarui profil.");
+
+    }
+
+};
+
+// ===============================
+// TUTUP renderProfile()
+// ===============================
 
 }

@@ -1,85 +1,66 @@
-import { posts } from "../data/posts.js";
-import {
-    getMemberById,
-    getCurrentMember
-} from "../data/members.js";
-
-// ==========================
+// =====================================
 // FORMAT WAKTU
-// ==========================
+// =====================================
 
 function formatTime(timestamp) {
 
-    if (typeof timestamp !== "number") {
+    if (!timestamp) {
 
-        return timestamp || "Baru saja";
+        return "Baru saja";
 
     }
 
-    const selisih = Date.now() - timestamp;
+    if (timestamp.seconds) {
 
-    const menit = Math.floor(selisih / 60000);
+        timestamp = timestamp.seconds * 1000;
 
-    if (menit < 1) return "Baru saja";
+    }
 
-    if (menit < 60) return `${menit} menit lalu`;
+    const diff = Date.now() - timestamp;
 
-    const jam = Math.floor(menit / 60);
+    const minute = 60000;
+    const hour = minute * 60;
+    const day = hour * 24;
+    const month = day * 30;
+    const year = month * 12;
 
-    if (jam < 24) return `${jam} jam lalu`;
+    if (diff < minute) return "Baru saja";
+    if (diff < hour) return Math.floor(diff / minute) + " menit lalu";
+    if (diff < day) return Math.floor(diff / hour) + " jam lalu";
+    if (diff < month) return Math.floor(diff / day) + " hari lalu";
+    if (diff < year) return Math.floor(diff / month) + " bulan lalu";
 
-    const hari = Math.floor(jam / 24);
-
-    if (hari < 30) return `${hari} hari lalu`;
-
-    const bulan = Math.floor(hari / 30);
-
-    if (bulan < 12) return `${bulan} bulan lalu`;
-
-    const tahun = Math.floor(bulan / 12);
-
-    return `${tahun} tahun lalu`;
+    return Math.floor(diff / year) + " tahun lalu";
 
 }
 
-// ==========================
+// =====================================
 // POST CARD
-// ==========================
+// =====================================
 
-export function PostCard() {
+export async function PostCard(posts, currentUser) {
 
-    const currentUser = getCurrentMember();
+    let html = "";
 
-    return posts.map(post => {
+    for (const post of posts) {
 
-        let avatar = post.avatar;
-        let name = post.name;
+        const avatar =
+            post.avatar ||
+            "assets/default-avatar.png";
 
-        // Ambil data member terbaru
-        if (post.memberId) {
+        const fullName =
+            post.name ||
+            "Unknown User";
 
-            const member = getMemberById(post.memberId);
+        const isOwner =
+            currentUser?.uid === post.uid;
 
-            if (member) {
+        const liked =
+            post.likedBy?.includes(currentUser?.uid);
 
-                avatar = member.avatar;
-                name = member.fullName;
+        html += `
 
-            }
-
-        }
-
-        // Kompatibilitas posting lama
-        else if (post.isMe && currentUser) {
-
-            avatar = currentUser.avatar;
-            name = currentUser.fullName;
-
-        }
-
-        return `
-
-        <div class="post">
+<div class="post">
 
     <div class="post-header">
 
@@ -88,66 +69,98 @@ export function PostCard() {
             <img
                 src="${avatar}"
                 class="avatar"
-                loading="lazy"
-                decoding="async"
                 draggable="false">
 
             <div>
 
-                <h4>${name}</h4>
+                <h4>${fullName}</h4>
 
-                <small>${formatTime(post.time)}</small>
+                <small>
+
+                    ${formatTime(post.createdAt || post.time)}
+
+                </small>
 
             </div>
 
         </div>
 
-        ${currentUser && post.memberId === currentUser.id ? `
+        ${isOwner ? `
 
-            <button
-                class="post-menu-btn"
-                data-id="${post.id}"
-                title="Menu">
+        <button
+            class="post-menu-btn"
+            data-id="${post.id}">
 
-                ⋮
+            <i class="fa-solid fa-ellipsis"></i>
 
-            </button>
+        </button>
 
         ` : ""}
 
     </div>
 
-    <p>${post.caption}</p>
+    <div class="post-body">
 
-    <img
-        data-src="${post.image}"
-        class="post-image lazy-image"
-        draggable="false">
+        ${post.caption ? `
 
-    <div class="actions">
+        <p class="post-caption">
 
-        <button
-            class="like-btn"
-            data-id="${post.id}">
+            ${post.caption}
 
-            ❤️ <span>${post.likes}</span>
+        </p>
 
-        </button>
+        ` : ""}
 
-        <button
-            class="comment-btn"
-            data-id="${post.id}">
+        <img
+            src="${post.image}"
+            class="post-image"
+            loading="lazy"
+            draggable="false">
 
-            💬 <span>${post.comments.length}</span>
+    </div>
 
-        </button>
+    <div class="post-footer">
+
+        <div class="post-actions">
+
+            <button
+                class="like-btn ${liked ? "liked" : ""}"
+                data-id="${post.id}">
+
+                <i class="fa-heart ${liked ? "fa-solid" : "fa-regular"}"></i>
+
+                <span>
+
+                    ${post.likes || 0}
+
+                </span>
+
+            </button>
+
+            <button
+                class="comment-btn"
+                data-id="${post.id}">
+
+                <i class="fa-regular fa-comment"></i>
+
+                <span>
+
+                    ${post.comments?.length || 0}
+
+                </span>
+
+            </button>
+
+        </div>
 
     </div>
 
 </div>
 
-        `;
+`;
 
-    }).join("");
+    }
+
+    return html;
 
 }
