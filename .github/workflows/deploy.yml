@@ -54,4 +54,8 @@ jobs:
 
       - name: Deploy
         id: deployment
+<<<<<<< HEAD
         uses: actions/deploy-pages@v4
+=======
+        uses: actions/deploy-pages@v4
+>>>>>>> aa36679 (Setup GitHub Actions)
