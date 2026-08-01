@@ -1,5 +1,6 @@
 import { navigate } from "../router.js";
 import { getCurrentUser } from "../data/currentUser.js";
+import logoRege from "../assets/logo-rege.png";
 
 export function renderSplash() {
 
@@ -20,9 +21,9 @@ export function renderSplash() {
             <div class="logo-circle">
 
                 <img
-                    src="assets/logo-rege.png"
-                    class="logo-image"
-                    alt="REGE Official">
+    src="${logoRege}"
+    class="logo-image"
+    alt="REGE Official">
 
             </div>
 
