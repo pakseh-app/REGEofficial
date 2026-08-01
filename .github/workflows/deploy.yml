@@ -19,21 +19,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install Dependencies
         run: npm install
 
-      - name: Build
+      - name: Fix Vite Permission
+        run: chmod +x node_modules/.bin/vite
+
+      - name: Build Project
         run: npm run build
 
-      - name: Upload Artifact
+      - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
@@ -48,6 +51,6 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Deploy
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
