@@ -12,7 +12,7 @@ export function setCurrentUser(user) {
 
     if (!user) return;
 
-    sessionStorage.setItem(
+    localStorage.setItem(
 
         STORAGE_KEY,
 
@@ -28,7 +28,7 @@ export function setCurrentUser(user) {
 
 export function getCurrentUser() {
 
-    const data = sessionStorage.getItem(STORAGE_KEY);
+    const data = localStorage.getItem(STORAGE_KEY);
 
     if (!data) {
 
@@ -44,7 +44,7 @@ export function getCurrentUser() {
 
         console.error(err);
 
-        sessionStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STORAGE_KEY);
 
         return null;
 
@@ -70,7 +70,7 @@ export function updateCurrentUser(data) {
 
     };
 
-    sessionStorage.setItem(
+    localStorage.setItem(
 
         STORAGE_KEY,
 
@@ -88,7 +88,7 @@ export function updateCurrentUser(data) {
 
 export function clearCurrentUser() {
 
-    sessionStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY);
 
 }
 

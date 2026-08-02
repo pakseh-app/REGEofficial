@@ -89,6 +89,6 @@ export function renderSplash() {
 
         }
 
-    }, 2800);
+    }, 3800);
 
 }
