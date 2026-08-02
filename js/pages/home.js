@@ -85,47 +85,7 @@ export async function renderHome() {
 
     }
 
-    // =====================================
-    // LAZY IMAGE
-    // =====================================
-
-    const observer = new IntersectionObserver(
-
-        entries => {
-
-            entries.forEach(entry => {
-
-                if (!entry.isIntersecting) return;
-
-                const img = entry.target;
-
-                img.src = img.dataset.src || img.src;
-
-                img.onload = () => {
-
-                    img.classList.add("loaded");
-
-                };
-
-                observer.unobserve(img);
-
-            });
-
-        },
-
-        {
-
-            rootMargin: "300px"
-
-        }
-
-    );
-
-    document
-
-        .querySelectorAll(".lazy-image")
-
-        .forEach(img => observer.observe(img));
+    
 
     // =====================================
     // IMAGE PREVIEW

@@ -103,25 +103,26 @@ export async function PostCard(posts, currentUser) {
     </div>
 
     ${
-        post.caption
-            ? `
+    post.caption
+        ? `
         <p class="post-caption">
-            ${post.caption}
+            ${(post.caption || "").replace(/\n/g, "<br>")}
         </p>
         `
-            : ""
-    }
+        : ""
+}
 
     ${
         image
             ? `
         <img
-            class="post-image"
-            src="${image}"
-            alt="Postingan"
-            loading="lazy"
-            draggable="false"
-        >
+    class="post-image"
+    src="${image}"
+    alt="Postingan"
+    loading="eager"
+    fetchpriority="high"
+    draggable="false"
+>
         `
             : ""
     }

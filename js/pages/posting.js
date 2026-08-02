@@ -30,53 +30,91 @@ export function renderPosting() {
 
     document.getElementById("app").innerHTML = `
 
-    <div class="app">
+<div class="app">
 
-        ${Navbar()}
+    ${Navbar()}
 
-        <div id="sidebar"></div>
+    <div id="sidebar"></div>
 
-        <main class="feed">
+    <main class="feed">
 
-            <div class="posting-card">
+        <div class="posting-card">
 
-                <h2>Buat Postingan</h2>
+            <h2>Buat Postingan</h2>
 
-                <input
-                    id="imageInput"
-                    type="file"
-                    accept="image/*">
+            <textarea
+                id="captionInput"
+                placeholder="Apa yang sedang kamu pikirkan hari ini?"></textarea>
+
+            <input
+                id="imageInput"
+                type="file"
+                accept="image/*"
+                hidden>
+
+            <button
+                id="addMediaBtn"
+                class="media-button">
+
+                <i class="fa-regular fa-image"></i>
+
+                Tambahkan Media
+
+            </button>
+
+            <div
+                id="previewWrapper"
+                style="display:none;">
 
                 <img
                     id="previewImage"
-                    class="preview-image"
-                    style="display:none;">
+                    class="preview-image">
 
-                <textarea
-                    id="captionInput"
-                    placeholder="Apa yang sedang kamu pikirkan?"></textarea>
+                <button
+                    id="removeImageBtn"
+                    class="remove-image">
 
-                <button id="publishBtn">
-
-                    Publish
+                    <i class="fa-solid fa-xmark"></i>
 
                 </button>
 
             </div>
 
-        </main>
+            <button id="publishBtn">
 
-        ${BottomNav("posting")}
+                Publish
 
-    </div>
+            </button>
 
-    `;
+        </div>
+
+    </main>
+
+    ${BottomNav("posting")}
+
+</div>
+
+`;
 
     renderSidebar();
 
     const imageInput = document.getElementById("imageInput");
+
     const preview = document.getElementById("previewImage");
+
+    const previewWrapper = document.getElementById("previewWrapper");
+
+    const addMediaBtn = document.getElementById("addMediaBtn");
+
+    const removeImageBtn = document.getElementById("removeImageBtn");
+
     const publishBtn = document.getElementById("publishBtn");
+
+    addMediaBtn.onclick = () => {
+
+        imageInput.click();
+
+    };
 
     imageInput.onchange = () => {
 
@@ -86,7 +124,17 @@ export function renderPosting() {
 
         preview.src = URL.createObjectURL(file);
 
-        preview.style.display = "block";
+        previewWrapper.style.display = "block";
+
+    };
+
+    removeImageBtn.onclick = () => {
+
+        imageInput.value = "";
+
+        preview.src = "";
+
+        previewWrapper.style.display = "none";
 
     };
 
@@ -97,9 +145,9 @@ export function renderPosting() {
         const caption =
             document.getElementById("captionInput").value.trim();
 
-        if (!file) {
+        if (!caption && !file) {
 
-            alert("Pilih gambar.");
+            alert("Tulis sesuatu atau pilih gambar.");
 
             return;
 
@@ -108,23 +156,30 @@ export function renderPosting() {
         try {
 
             publishBtn.disabled = true;
+
             publishBtn.textContent = "Mengupload...";
 
-            const imageUrl = await uploadImage(file);
+            let imageUrl = "";
 
-           await addPost({
+            if (file) {
 
-    uid: user.uid,
+                imageUrl = await uploadImage(file);
 
-    name: user.fullName,
+            }
 
-    avatar: user.avatar,
+            await addPost({
 
-    caption,
+                uid: user.uid,
 
-    image: imageUrl
+                name: user.fullName,
 
-});
+                avatar: user.avatar,
+
+                caption,
+
+                image: imageUrl
+
+            });
 
             const totalPosting = (user.posting || 0) + 1;
 
@@ -153,6 +208,7 @@ export function renderPosting() {
             alert("Gagal membuat posting.");
 
             publishBtn.disabled = false;
+
             publishBtn.textContent = "Publish";
 
         }
