@@ -32,7 +32,7 @@ export function renderSearch(){
 
         </main>
 
-        ${BottomNav()}
+        ${BottomNav("search")}
 
     </div>
 

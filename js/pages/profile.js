@@ -114,7 +114,7 @@ export function renderProfile() {
 
         </main>
 
-        ${BottomNav()}
+        ${BottomNav("profile")}
 
         ${CropModal()}
 

@@ -62,7 +62,7 @@ export function renderChat(){
 
         </main>
 
-        ${BottomNav()}
+        ${BottomNav("chat")}
 
     </div>
 

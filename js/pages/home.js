@@ -56,7 +56,7 @@ export async function renderHome() {
 
         ${EditPostModal()}
 
-        ${BottomNav()}
+        ${BottomNav("home")}
 
         ${CommentModal()}
 

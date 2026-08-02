@@ -947,33 +947,32 @@ textarea{
 
     left:50%;
 
-    bottom:14px;
+    bottom:18px;
 
     transform:translateX(-50%);
 
-    width:94%;
+    width:92%;
+    max-width:470px;
 
-    max-width:480px;
+    height:76px;
 
-    height:72px;
-
-    display:flex;
-
-    justify-content:space-around;
+    display:grid;
+    grid-template-columns:1fr 1fr 80px 1fr 1fr;
 
     align-items:center;
 
-    background:rgba(15,23,42,.72);
+    padding:0 10px;
 
-    backdrop-filter:blur(25px);
+    border-radius:28px;
+
+    background:rgba(15,23,42,.85);
+
+    backdrop-filter:blur(20px);
 
     border:1px solid rgba(255,255,255,.08);
 
-    border-radius:25px;
-
     box-shadow:
-
-        0 10px 30px rgba(0,0,0,.35);
+        0 12px 35px rgba(0,0,0,.35);
 
     z-index:999;
 
@@ -2519,5 +2518,284 @@ textarea{
     margin: 0;
 
     line-height: 1.5;
+
+}
+
+/* ==========================================================
+   REGE OFFICIAL
+   BOTTOM NAVBAR V2
+========================================================== */
+
+.bottom-nav{
+
+    position:fixed;
+
+    left:50%;
+
+    bottom:18px;
+
+    transform:translateX(-50%);
+
+    width:92%;
+
+    max-width:470px;
+
+    height:78px;
+
+    display:flex;
+
+    justify-content:space-around;
+
+    align-items:center;
+
+    padding:0 14px;
+
+    border-radius:28px;
+
+    background:rgba(17,24,39,.82);
+
+    backdrop-filter:blur(22px);
+
+    -webkit-backdrop-filter:blur(22px);
+
+    border:1px solid rgba(255,255,255,.08);
+
+    box-shadow:
+
+        0 10px 35px rgba(0,0,0,.35),
+
+        inset 0 1px 0 rgba(255,255,255,.05);
+
+    z-index:9999;
+
+}
+
+/* ==========================
+   ICON
+========================== */
+
+.bottom-nav .nav-item{
+
+    width:52px;
+
+    height:52px;
+
+    margin:auto;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    border:none;
+
+    border-radius:50%;
+
+    background:transparent;
+
+    color:#CBD5E1;
+
+    font-size:22px;
+
+    transition:.35s;
+
+    cursor:pointer;
+
+}
+
+.bottom-nav .nav-item:hover{
+
+    color:#ffffff;
+
+    transform:translateY(-3px);
+
+}
+
+/* ==========================
+   ACTIVE
+========================== */
+
+.bottom-nav .nav-item.active{
+
+    background:white;
+
+    color:#8B5CF6;
+
+    box-shadow:
+        0 0 18px rgba(168,85,247,.45);
+
+    transform:translateY(-8px);
+
+}
+
+.bottom-nav .nav-item.active i{
+
+    color:#7C3AED;
+
+}
+
+/* ==========================
+   CENTER BUTTON
+========================== */
+
+.bottom-nav .nav-center{
+
+    width:68px;
+
+    height:68px;
+
+    margin:auto;
+
+    border:none;
+
+    border-radius:50%;
+
+    background:linear-gradient(
+        135deg,
+        #A855F7,
+        #EC4899
+    );
+
+    color:white;
+
+    font-size:28px;
+
+    box-shadow:
+
+        0 0 25px rgba(168,85,247,.45);
+
+    transition:.3s;
+
+    cursor:pointer;
+
+}
+    background-size:300% 300%;
+
+    animation:gradientMove 6s ease infinite;
+
+    box-shadow:
+
+        0 0 25px rgba(168,85,247,.55),
+
+        0 0 45px rgba(59,130,246,.35);
+
+    transition:.35s;
+
+}
+
+.bottom-nav .nav-center:hover{
+
+    transform:
+
+        translateX(-50%)
+
+        scale(1.08);
+
+}
+
+/* ==========================
+   GLOW
+========================== */
+
+.bottom-nav .nav-center::before{
+
+    content:"";
+
+    position:absolute;
+
+    inset:1px;
+
+    border-radius:4%;
+
+    background:
+
+    linear-gradient(
+
+        80deg,
+
+        #A855F7,
+
+        #EC4899,
+
+        #3B82F6
+
+    );
+
+    z-index:-1;
+
+    filter:blur(26px);
+
+    opacity:.4;
+
+    animation:pulseGlow 6s infinite;
+
+}
+
+/* ==========================
+   ANIMATION
+========================== */
+
+@keyframes pulseGlow{
+
+    0%{
+
+        transform:scale(.9);
+
+        opacity:.22;
+
+    }
+
+    50%{
+
+        transform:scale(1.1);
+
+        opacity:1;
+
+    }
+
+    100%{
+
+        transform:scale(.9);
+
+        opacity:.22;
+
+    }
+
+}
+
+@keyframes gradientMove{
+
+    0%{
+
+        background-position:0% 50%;
+
+    }
+
+    50%{
+
+        background-position:100% 50%;
+
+    }
+
+    100%{
+
+        background-position:0% 50%;
+
+    }
+
+}
+
+/* ==========================
+   RESPONSIVE
+========================== */
+
+@media(max-width:480px){
+
+.bottom-nav{
+
+    width:95%;
+
+}
 
 }

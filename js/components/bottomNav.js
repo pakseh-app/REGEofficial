@@ -1,6 +1,6 @@
 import { navigate } from "../router.js";
 
-export function BottomNav() {
+export function BottomNav(active = "home") {
 
     setTimeout(() => {
 
@@ -30,24 +30,44 @@ export function BottomNav() {
 
     <nav class="bottom-nav">
 
-        <button id="nav-home">
+        <button
+            id="nav-home"
+            class="nav-item ${active === "home" ? "active" : ""}">
+
             <i class="fa-solid fa-house"></i>
+
         </button>
 
-        <button id="nav-search">
+        <button
+            id="nav-search"
+            class="nav-item ${active === "search" ? "active" : ""}">
+
             <i class="fa-solid fa-magnifying-glass"></i>
+
         </button>
 
-        <button id="nav-add" class="add">
+        <button
+            id="nav-add"
+            class="nav-center">
+
             <i class="fa-solid fa-plus"></i>
+
         </button>
 
-        <button id="nav-chat">
+        <button
+            id="nav-chat"
+            class="nav-item ${active === "chat" ? "active" : ""}">
+
             <i class="fa-regular fa-comment"></i>
+
         </button>
 
-        <button id="nav-profile">
+        <button
+            id="nav-profile"
+            class="nav-item ${active === "profile" ? "active" : ""}">
+
             <i class="fa-regular fa-user"></i>
+
         </button>
 
     </nav>

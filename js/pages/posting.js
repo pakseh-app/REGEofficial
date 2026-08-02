@@ -66,7 +66,7 @@ export function renderPosting() {
 
         </main>
 
-        ${BottomNav()}
+        ${BottomNav("posting")}
 
     </div>
 
