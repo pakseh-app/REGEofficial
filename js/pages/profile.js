@@ -10,6 +10,7 @@ import {
     updateCurrentUser
 } from "../data/currentUser.js";
 import { updateMember } from "../data/members.js";
+import { updateUserPosts } from "../data/posts.js";
 
 import { navigate } from "../router.js";
 
@@ -236,26 +237,30 @@ saveCrop.onclick = async () => {
 
         const imageUrl = await uploadImage(file);
 
-        // update tampilan
-        avatar.src = imageUrl;
+       // update tampilan
+avatar.src = imageUrl;
 
-        // update object user
-        user.avatar = imageUrl;
+// update Firestore
+await updateMember(user.uid, {
 
-        // simpan ke sessionStorage
-        sessionStorage.setItem(
-            "rege_current_user",
-            JSON.stringify(user)
-        );
+    avatar: imageUrl
 
-        console.log("UPDATE PROFILE =", user);
+});
 
-        // update Firestore
-        await updateMember(user.uid, {
+// update data user lokal (localStorage)
+updateCurrentUser({
 
-            avatar: imageUrl
+    avatar: imageUrl
 
-        });
+});
+
+console.log("UPDATE PROFILE =", getCurrentUser());
+
+await updateUserPosts(user.uid, {
+
+    avatar: imageUrl
+
+});
 
         cropModal.classList.remove("show");
 
@@ -316,11 +321,19 @@ document.getElementById("editProfile").onclick = async () => {
 
         await updateMember(user.uid, {
 
-            fullName: nama,
+    fullName: nama,
 
-            bio: bio || ""
+    bio: bio || ""
 
-        });
+});
+
+await updateUserPosts(user.uid, {
+
+    name: nama,
+
+    avatar: user.avatar
+
+});
 
         // ===========================
         // UPDATE DATA LOKAL

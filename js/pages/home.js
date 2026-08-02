@@ -15,6 +15,10 @@ import {
 } from "../data/posts.js";
 
 import {
+    getMembers
+} from "../data/members.js";
+
+import {
     getCurrentUser
 } from "../data/currentUser.js";
 
@@ -32,6 +36,34 @@ export async function renderHome() {
 
     const posts = await getPosts();
 
+const members = await getMembers();
+
+const finalPosts = posts.map(post => {
+
+    const member = members.find(
+
+        item => item.uid === post.uid
+
+    );
+
+    if (!member) {
+
+        return post;
+
+    }
+
+    return {
+
+        ...post,
+
+        name: member.fullName,
+
+        avatar: member.avatar
+
+    };
+
+});
+
     document.getElementById("app").innerHTML = `
 
     <div class="app">
@@ -46,7 +78,7 @@ export async function renderHome() {
 
         <main class="feed">
 
-            ${await PostCard(posts, currentUser)}
+            ${await PostCard(finalPosts, currentUser)}
 
         </main>
 

@@ -214,3 +214,39 @@ export async function addComment(postId, comment) {
     );
 
 }
+
+// =====================================
+// UPDATE SEMUA POST MILIK USER
+// =====================================
+
+export async function updateUserPosts(uid, data) {
+
+    const snapshot = await getDocs(postsRef);
+
+    const jobs = [];
+
+    snapshot.forEach((item) => {
+
+        const post = item.data();
+
+        if (post.uid === uid) {
+
+            jobs.push(
+
+                updateDoc(
+
+                    doc(db, "posts", item.id),
+
+                    data
+
+                )
+
+            );
+
+        }
+
+    });
+
+    await Promise.all(jobs);
+
+}
