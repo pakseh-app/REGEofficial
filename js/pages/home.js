@@ -446,6 +446,9 @@ async function renderComments(postId) {
 
     await bindCommentLike(postId);
 
+await bindCommentLikeCount(postId);
+
+
 }
 
 // =====================================
@@ -454,7 +457,141 @@ async function renderComments(postId) {
 
 async function bindCommentLike(postId) {
 
-    async function bindCommentLikeCount(postId) {
+    const {
+
+        likeComment,
+
+        unlikeComment
+
+    } = await import("../data/posts.js");
+
+    document
+
+        .querySelectorAll(".comment-like-btn")
+
+        .forEach(btn => {
+
+            btn.onclick = async () => {
+
+                const commentId = btn.dataset.id;
+
+                const comments = await getComments(postId);
+
+                const comment = comments.find(
+
+                    c => c.id === commentId
+
+                );
+
+                if (!comment) return;
+
+                if ((comment.likedBy || []).includes(currentUser.uid)) {
+
+                    await unlikeComment(
+
+                        postId,
+
+                        commentId,
+
+                        currentUser.uid
+
+                    );
+
+                } else {
+
+                    await likeComment(
+
+                        postId,
+
+                        commentId,
+
+                        currentUser.uid
+
+                    );
+
+                }
+
+                await renderComments(postId);
+
+            };
+
+        });
+
+}
+
+// =====================================
+// BIND LIKE COMMENT
+// =====================================
+
+async function bindCommentLike(postId) {
+
+    const {
+
+        likeComment,
+
+        unlikeComment
+
+    } = await import("../data/posts.js");
+
+    document
+
+        .querySelectorAll(".comment-like-btn")
+
+        .forEach(btn => {
+
+            btn.onclick = async () => {
+
+                const commentId = btn.dataset.id;
+
+                const comments = await getComments(postId);
+
+                const comment = comments.find(
+
+                    c => c.id === commentId
+
+                );
+
+                if (!comment) return;
+
+                if ((comment.likedBy || []).includes(currentUser.uid)) {
+
+                    await unlikeComment(
+
+                        postId,
+
+                        commentId,
+
+                        currentUser.uid
+
+                    );
+
+                } else {
+
+                    await likeComment(
+
+                        postId,
+
+                        commentId,
+
+                        currentUser.uid
+
+                    );
+
+                }
+
+                await renderComments(postId);
+
+            };
+
+        });
+
+}
+
+// =====================================
+// BIND LIHAT DAFTAR LIKE
+// =====================================
+
+async function bindCommentLikeCount(postId) {
 
     document
 
@@ -482,27 +619,37 @@ async function bindCommentLike(postId) {
 
                 likesList.innerHTML = "";
 
-                for (const uid of (comment.likedBy || [])) {
+                if ((comment.likedBy || []).length === 0) {
 
-                    const user = members.find(
+                    likesList.innerHTML = `
 
-                        m => m.uid === uid
+<p class="empty-likes">
 
-                    );
+Belum ada yang menyukai komentar ini.
 
-                    if (!user) continue;
+</p>
 
-                    likesList.innerHTML += `
+`;
+
+                } else {
+
+                    for (const uid of comment.likedBy) {
+
+                        const user = members.find(
+
+                            m => m.uid === uid
+
+                        );
+
+                        if (!user) continue;
+
+                        likesList.innerHTML += `
 
 <div class="like-user">
 
     <img
-
         src="${user.avatar}"
-
-        draggable="false"
-
-    >
+        draggable="false">
 
     <b>${user.fullName}</b>
 
@@ -510,19 +657,7 @@ async function bindCommentLike(postId) {
 
 `;
 
-                }
-
-                if ((comment.likedBy || []).length === 0) {
-
-                    likesList.innerHTML = `
-
-<p style="padding:20px;text-align:center;color:#94A3B8;">
-
-Belum ada yang menyukai komentar ini.
-
-</p>
-
-`;
+                    }
 
                 }
 
@@ -531,69 +666,6 @@ Belum ada yang menyukai komentar ini.
             };
 
         });
-
-}
-
-    const {
-
-        likeComment,
-
-        unlikeComment,
-
-        getPost
-
-    } = await import("../data/posts.js");
-
-    document.querySelectorAll(".comment-like-btn").forEach(btn => {
-
-        btn.onclick = async () => {
-
-            console.log("LIKE DIKLIK");
-
-            const commentId = btn.dataset.id;
-
-            const post = await getPost(postId);
-
-            const comment = post.comments.find(
-
-                item => item.id === commentId
-
-            );
-
-            if (!comment) return;
-
-        if ((comment.likedBy || []).includes(currentUser.uid)) {
-
-    await unlikeComment(
-
-        postId,
-
-        commentId,
-
-        currentUser.uid
-
-    );
-
-} else {
-
-    await likeComment(
-
-        postId,
-
-        commentId,
-
-        currentUser.uid
-
-    );
-
-}
-
-// Refresh komentar
-await renderComments(postId);
-
-};
-
-});
 
 }
 
