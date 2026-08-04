@@ -2097,6 +2097,46 @@ textarea{
 
 }
 
+.comment-like-wrap{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:6px;
+
+}
+
+.comment-like-btn{
+
+    border:none;
+
+    background:none;
+
+    cursor:pointer;
+
+    font-size:16px;
+
+}
+
+.comment-like-count{
+
+    cursor:pointer;
+
+    font-weight:700;
+
+    color:#60A5FA;
+
+    transition:.2s;
+
+}
+
+.comment-like-count:hover{
+
+    color:#93C5FD;
+
+}
+
 /* ==========================
    SCROLLBAR
 ========================== */
@@ -3314,5 +3354,123 @@ textarea{
     opacity:.6;
 
     cursor:not-allowed;
+
+}
+
+/* ==========================
+   LIKES MODAL
+========================== */
+
+.likes-modal{
+
+    position:fixed;
+
+    inset:0;
+
+    display:none;
+
+    justify-content:center;
+
+    align-items:center;
+
+    background:rgba(0,0,0,.55);
+
+    z-index:10000;
+
+}
+
+.likes-modal.show{
+
+    display:flex;
+
+}
+
+.likes-box{
+
+    width:360px;
+
+    max-width:90%;
+
+    background:#111827;
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+}
+
+.likes-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:18px;
+
+    border-bottom:1px solid rgba(255,255,255,.08);
+
+}
+
+.likes-header h3{
+
+    color:white;
+
+    margin:0;
+
+}
+
+.likes-header button{
+
+    background:none;
+
+    border:none;
+
+    color:white;
+
+    cursor:pointer;
+
+    font-size:18px;
+
+}
+
+.likes-list{
+
+    max-height:420px;
+
+    overflow:auto;
+
+}
+
+.like-user{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    padding:14px 18px;
+
+    border-bottom:1px solid rgba(255,255,255,.05);
+
+}
+
+.like-user img{
+
+    width:42px;
+
+    height:42px;
+
+    border-radius:50%;
+
+    object-fit:cover;
+
+}
+
+.like-user b{
+
+    color:white;
 
 }

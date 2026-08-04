@@ -6,6 +6,7 @@ import { CommentModal } from "../components/commentModal.js";
 import { ImagePreview } from "../components/imagePreview.js";
 import { PostMenu } from "../components/postMenu.js";
 import { EditPostModal } from "../components/editPostModal.js";
+import { LikesModal } from "../components/commentLikesModal.js";
 
 import { renderSidebar } from "../components/sidebar.js";
 import { PostCard } from "../components/postCard.js";
@@ -118,6 +119,8 @@ const finalPosts = posts.map(post => {
         ${BottomNav("home")}
 
         ${CommentModal()}
+        
+        ${LikesModal()}
 
     </div>
 
@@ -125,6 +128,29 @@ const finalPosts = posts.map(post => {
 
     renderSidebar();
 
+    document.getElementById("closeLikes").onclick = () => {
+
+    document
+
+        .getElementById("likesModal")
+
+        .classList.remove("show");
+
+};
+
+document.getElementById("likesModal").onclick = e => {
+
+    if (
+
+        e.target.id === "likesModal"
+
+    ) {
+
+        e.target.classList.remove("show");
+
+    }
+
+};
 
         // =====================================
     // SIDEBAR
@@ -368,31 +394,47 @@ async function renderComments(postId) {
 
         <div class="comment-actions">
 
-            <button
+    <div class="comment-like-wrap">
 
-                class="comment-like-btn ${comment.likedBy?.includes(currentUser.uid) ? "liked" : ""}"
+        <button
 
-                data-id="${comment.id}"
+            class="comment-like-btn ${comment.likedBy?.includes(currentUser.uid) ? "liked" : ""}"
 
-            >
+            data-id="${comment.id}"
 
-                ❤️ <span>${comment.likes ?? 0}</span>
+        >
 
-            </button>
+            ❤️
 
-            <button
+        </button>
 
-                class="comment-reply-btn"
+        <span
 
-                data-id="${comment.id}"
+            class="comment-like-count"
 
-            >
+            data-id="${comment.id}"
 
-                💬 Balas
+        >
 
-            </button>
+            ${comment.likes ?? 0}
 
-        </div>
+        </span>
+
+    </div>
+
+    <button
+
+        class="comment-reply-btn"
+
+        data-id="${comment.id}"
+
+    >
+
+        💬 Balas
+
+    </button>
+
+</div>
 
     </div>
 
@@ -411,6 +453,86 @@ async function renderComments(postId) {
 // =====================================
 
 async function bindCommentLike(postId) {
+
+    async function bindCommentLikeCount(postId) {
+
+    document
+
+        .querySelectorAll(".comment-like-count")
+
+        .forEach(item => {
+
+            item.onclick = async () => {
+
+                const commentId = item.dataset.id;
+
+                const comments = await getComments(postId);
+
+                const comment = comments.find(
+
+                    c => c.id === commentId
+
+                );
+
+                if (!comment) return;
+
+                const likesModal = document.getElementById("likesModal");
+
+                const likesList = document.getElementById("likesList");
+
+                likesList.innerHTML = "";
+
+                for (const uid of (comment.likedBy || [])) {
+
+                    const user = members.find(
+
+                        m => m.uid === uid
+
+                    );
+
+                    if (!user) continue;
+
+                    likesList.innerHTML += `
+
+<div class="like-user">
+
+    <img
+
+        src="${user.avatar}"
+
+        draggable="false"
+
+    >
+
+    <b>${user.fullName}</b>
+
+</div>
+
+`;
+
+                }
+
+                if ((comment.likedBy || []).length === 0) {
+
+                    likesList.innerHTML = `
+
+<p style="padding:20px;text-align:center;color:#94A3B8;">
+
+Belum ada yang menyukai komentar ini.
+
+</p>
+
+`;
+
+                }
+
+                likesModal.classList.add("show");
+
+            };
+
+        });
+
+}
 
     const {
 
@@ -544,11 +666,19 @@ sendButton.onclick = async () => {
 
 const tempComment = {
 
+    id: crypto.randomUUID(),
+
     uid: currentUser.uid,
 
     text,
 
-    time: now
+    time: now,
+
+    likes: 0,
+
+    likedBy: [],
+
+    replies: []
 
 };
 
@@ -608,6 +738,8 @@ await addComment(
     tempComment
 
 );
+
+await renderComments(selectedPostId);
 
     // Update jumlah komentar
     const latest = await getPost(selectedPostId);
