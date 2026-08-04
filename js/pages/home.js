@@ -15,12 +15,39 @@ import {
 } from "../data/posts.js";
 
 import {
-    getMembers
+    getMembers,
+    getMember
 } from "../data/members.js";
 
 import {
     getCurrentUser
 } from "../data/currentUser.js";
+
+// =====================================
+// FORMAT WAKTU KOMENTAR
+// =====================================
+
+function formatCommentTime(time) {
+
+    if (!time) return "Baru saja";
+
+    const diff = Date.now() - time;
+
+    const minute = 1000 * 60;
+    const hour = minute * 60;
+    const day = hour * 24;
+
+    if (diff < minute) return "Baru saja";
+
+    if (diff < hour)
+        return `${Math.floor(diff / minute)} menit lalu`;
+
+    if (diff < day)
+        return `${Math.floor(diff / hour)} jam lalu`;
+
+    return `${Math.floor(diff / day)} hari lalu`;
+
+}
 
 export async function renderHome() {
 
@@ -277,150 +304,197 @@ const finalPosts = posts.map(post => {
 
         });
 
-            // =====================================
-    // COMMENT
-    // =====================================
+          
+        // =====================================
+// COMMENT
+// =====================================
 
-    const {
+const { addComment } = await import("../data/posts.js");
 
-        addComment
+const modal = document.getElementById("commentModal");
 
-    } = await import("../data/posts.js");
+const commentList = document.getElementById("commentList");
 
-    const modal = document.getElementById("commentModal");
+const commentInput = document.getElementById("commentText");
 
-    const commentList = document.getElementById("commentList");
+const sendButton = document.getElementById("sendComment");
 
-    const commentInput = document.getElementById("commentText");
+const closeButton = document.getElementById("closeComment");
 
-    const sendButton = document.getElementById("sendComment");
+// =====================================
+// RENDER COMMENT
+// =====================================
 
-    const closeButton = document.getElementById("closeComment");
+async function renderComments(postId) {
 
+    const post = await getPost(postId);
 
-    document
+    commentList.innerHTML = "";
 
-        .querySelectorAll(".comment-btn")
+    for (const comment of (post.comments || [])) {
 
-        .forEach(btn => {
+        const user = await getMember(comment.uid);
 
-            btn.onclick = async () => {
-
-                selectedPostId = btn.dataset.id;
-
-                const post = await getPost(selectedPostId);
-
-                commentList.innerHTML = "";
-
-                (post.comments || []).forEach(comment => {
-
-                    commentList.innerHTML += `
+        commentList.innerHTML += `
 
 <div class="comment-item">
 
-<b>${comment.name}</b>
+    <img
+        class="comment-avatar"
+        src="${user?.avatar || "assets/default-avatar.png"}"
+        draggable="false">
 
-<p>${comment.text}</p>
+    <div class="comment-content">
+
+        <div class="comment-top">
+
+            <b>${user?.fullName || "Pengguna"}</b>
+
+            <span>${formatCommentTime(comment.time)}</span>
+
+        </div>
+
+        <p>${comment.text}</p>
+
+        <div class="comment-actions">
+
+            <button
+                class="comment-like-btn"
+                data-comment="${comment.id}">
+
+                ❤️ ${comment.likes || 0}
+
+            </button>
+
+            <button
+                class="comment-reply-btn"
+                data-comment="${comment.id}">
+
+                💬 Balas
+
+            </button>
+
+        </div>
+
+    </div>
 
 </div>
 
 `;
 
-                });
+    }
 
-                modal.classList.add("show");
+}
 
-                commentInput.focus();
+// =====================================
+// BUKA KOMENTAR
+// =====================================
 
-            };
+document
+.querySelectorAll(".comment-btn")
+.forEach(btn => {
 
-        });
+    btn.onclick = async () => {
 
-    closeButton.onclick = () => {
+        selectedPostId = btn.dataset.id;
+
+        await renderComments(selectedPostId);
+
+        modal.classList.add("show");
+
+        commentInput.focus();
+
+    };
+
+});
+
+// =====================================
+// TUTUP
+// =====================================
+
+closeButton.onclick = () => {
+
+    modal.classList.remove("show");
+
+};
+
+modal.onclick = (e) => {
+
+    if (e.target === modal) {
 
         modal.classList.remove("show");
 
-    };
+    }
 
-    modal.onclick = e => {
+};
 
-        if (e.target === modal) {
+// =====================================
+// KIRIM KOMENTAR
+// =====================================
 
-            modal.classList.remove("show");
+sendButton.onclick = async () => {
 
-        }
+    if (!selectedPostId) return;
 
-    };
+    const text = commentInput.value.trim();
 
-    sendButton.onclick = async () => {
+    if (!text) return;
 
-        if (!selectedPostId) return;
+    sendButton.disabled = true;
 
-        const text = commentInput.value.trim();
+    sendButton.textContent = "Mengirim...";
 
-        if (!text) return;
+    await addComment(
 
-        await addComment(
+        selectedPostId,
 
-            selectedPostId,
+        {
 
-            {
+            uid: currentUser.uid,
 
-                uid: currentUser.uid,
+            text,
 
-                name: currentUser.fullName,
-
-                avatar: currentUser.avatar,
-
-                text,
-
-                time: Date.now()
-
-            }
-
-        );
-
-        commentInput.value = "";
-
-        const latest = await getPost(selectedPostId);
-
-        commentList.innerHTML = "";
-
-        (latest.comments || []).forEach(comment => {
-
-            commentList.innerHTML += `
-
-<div class="comment-item">
-
-<b>${comment.name}</b>
-
-<p>${comment.text}</p>
-
-</div>
-
-`;
-
-        });
-
-        const counter = document.querySelector(
-
-            '.comment-btn[data-id="' +
-
-            selectedPostId +
-
-            '"] span'
-
-        );
-
-        if (counter) {
-
-            counter.textContent =
-
-                latest.comments?.length || 0;
+            time: Date.now()
 
         }
 
-    };
+    );
+
+    commentInput.value = "";
+
+    await renderComments(selectedPostId);
+
+    const latest = await getPost(selectedPostId);
+
+    const counter = document.querySelector(
+
+        '.comment-btn[data-id="' +
+
+        selectedPostId +
+
+        '"] span'
+
+    );
+
+    if (counter) {
+
+        counter.textContent = latest.comments?.length || 0;
+
+    }
+
+    setTimeout(() => {
+
+        modal.classList.remove("show");
+
+    }, 400);
+
+    selectedPostId = null;
+
+    sendButton.disabled = false;
+
+    sendButton.textContent = "Kirim";
+
+};
 
         // =====================================
     // POST MENU

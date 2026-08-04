@@ -201,13 +201,31 @@ export async function unlikePost(postId, uid) {
 
 export async function addComment(postId, comment) {
 
+    const newComment = {
+
+        id: crypto.randomUUID(),
+
+        uid: comment.uid,
+
+        text: comment.text,
+
+        time: comment.time,
+
+        likes: 0,
+
+        likedBy: [],
+
+        replies: []
+
+    };
+
     await updateDoc(
 
         doc(db, "posts", postId),
 
         {
 
-            comments: arrayUnion(comment)
+            comments: arrayUnion(newComment)
 
         }
 
