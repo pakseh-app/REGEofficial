@@ -1,9 +1,14 @@
-import { users } from "../data/users.js";
+import { getMembers } from "../data/members.js";
 import { Navbar } from "../components/navbar.js";
 import { BottomNav } from "../components/bottomNav.js";
 import { renderSidebar } from "../components/sidebar.js";
+import { navigate } from "../router.js";
 
-export function renderSearch(){
+let users = [];
+
+export async function renderSearch() {
+
+    users = await getMembers();
 
     document.getElementById("app").innerHTML = `
 
@@ -41,24 +46,47 @@ export function renderSearch(){
     renderSidebar();
 
     document
+
         .getElementById("searchInput")
+
         .addEventListener("input", filterUser);
+
+        bindUserClick();
 
 }
 
-function renderUser(list){
+function renderUser(list) {
 
-    return list.map(user=>`
+    if (list.length === 0) {
 
-        <div class="user-card">
+        return `
 
-            <img src="${user.avatar}">
+        <div class="empty-search">
+
+            Tidak ada pengguna ditemukan.
+
+        </div>
+
+        `;
+
+    }
+
+    return list.map(user => `
+
+        <div
+    class="user-card"
+    data-uid="${user.uid}"
+>
+
+            <img
+                src="${user.avatar || "assets/default-avatar.png"}"
+                draggable="false">
 
             <div>
 
-                <h4>${user.name}</h4>
+                <h4>${user.fullName}</h4>
 
-                <small>${user.username}</small>
+                <small>@${user.username}</small>
 
             </div>
 
@@ -68,21 +96,62 @@ function renderUser(list){
 
 }
 
-function filterUser(){
+function filterUser() {
 
     const keyword = document
+
         .getElementById("searchInput")
+
         .value
-        .toLowerCase();
 
-    const result = users.filter(user=>
+        .toLowerCase()
 
-        user.name.toLowerCase().includes(keyword) ||
+        .trim();
 
-        user.username.toLowerCase().includes(keyword)
+    const result = users.filter(user =>
+
+        (user.fullName || "")
+
+            .toLowerCase()
+
+            .includes(keyword)
+
+        ||
+
+        (user.username || "")
+
+            .toLowerCase()
+
+            .includes(keyword)
 
     );
 
     document.getElementById("searchResult").innerHTML = renderUser(result);
+
+bindUserClick();
+
+}
+
+function bindUserClick() {
+
+    document
+
+        .querySelectorAll(".user-card")
+
+        .forEach(card => {
+
+            card.onclick = () => {
+
+                navigate(
+
+                    "profileUser",
+
+                    card.dataset.uid
+
+                );
+
+            };
+
+        });
 
 }

@@ -10,7 +10,7 @@ export function registerRoute(name, renderFunction) {
     routes[name] = renderFunction;
 }
 
-export async function navigate(name) {
+export async function navigate(name, data = null) {
 
     const currentUser = getCurrentUser();
 
@@ -43,6 +43,22 @@ export async function navigate(name) {
 
     }
 
-    page();
+    try {
+
+        if (data !== null && data !== undefined) {
+
+            await page(data);
+
+        } else {
+
+            await page();
+
+        }
+
+    } catch (err) {
+
+        console.error("Navigate Error:", err);
+
+    }
 
 }

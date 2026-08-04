@@ -52,8 +52,7 @@ export async function PostCard(posts, currentUser) {
             "Unknown User";
 
         const image =
-            post.image ||
-            "";
+            post.image || "";
 
         const liked =
             post.likedBy?.includes(currentUser?.uid);
@@ -67,16 +66,23 @@ export async function PostCard(posts, currentUser) {
 
     <div class="post-header">
 
-        <div class="post-user">
+        <div
+            class="post-user"
+            data-uid="${post.uid}"
+        >
 
             <img
-                class="avatar"
+                class="avatar post-profile-link"
                 src="${avatar}"
                 alt="${fullName}"
+                data-uid="${post.uid}"
                 draggable="false"
             >
 
-            <div class="post-user-info">
+            <div
+                class="post-user-info post-profile-link"
+                data-uid="${post.uid}"
+            >
 
                 <h4>${fullName}</h4>
 
@@ -103,26 +109,26 @@ export async function PostCard(posts, currentUser) {
     </div>
 
     ${
-    post.caption
-        ? `
+        post.caption
+            ? `
         <p class="post-caption">
             ${(post.caption || "").replace(/\n/g, "<br>")}
         </p>
         `
-        : ""
-}
+            : ""
+    }
 
     ${
         image
             ? `
         <img
-    class="post-image"
-    src="${image}"
-    alt="Postingan"
-    loading="eager"
-    fetchpriority="high"
-    draggable="false"
->
+            class="post-image"
+            src="${image}"
+            alt="Postingan"
+            loading="eager"
+            fetchpriority="high"
+            draggable="false"
+        >
         `
             : ""
     }

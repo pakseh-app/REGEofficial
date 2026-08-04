@@ -9,8 +9,8 @@ import { renderSearch } from "./pages/search.js";
 import { renderPosting } from "./pages/posting.js";
 import { renderChat } from "./pages/chat.js";
 import { renderProfile } from "./pages/profile.js";
+import { renderProfileUser } from "./pages/profileUser.js";
 import { renderAnnouncement } from "./pages/announcement.js";
-
 
 // ===============================
 // REGISTER ROUTE
@@ -24,8 +24,8 @@ registerRoute("search", renderSearch);
 registerRoute("posting", renderPosting);
 registerRoute("chat", renderChat);
 registerRoute("profile", renderProfile);
+registerRoute("profileUser", renderProfileUser);
 registerRoute("announcement", renderAnnouncement);
-
 // ===============================
 // START APP
 // ===============================
