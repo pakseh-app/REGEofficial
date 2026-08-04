@@ -234,6 +234,110 @@ export async function addComment(postId, comment) {
 }
 
 // =====================================
+// GET COMMENTS
+// =====================================
+
+export async function getComments(postId) {
+
+    const post = await getPost(postId);
+
+    if (!post) {
+
+        return [];
+
+    }
+
+    return post.comments || [];
+
+}
+
+// =====================================
+// LIKE COMMENT
+// =====================================
+
+export async function likeComment(postId, commentId, uid) {
+
+    const post = await getPost(postId);
+
+    if (!post) return;
+
+    const comments = post.comments.map(comment => {
+
+        if (comment.id !== commentId) return comment;
+
+        if (comment.likedBy?.includes(uid)) return comment;
+
+        return {
+
+            ...comment,
+
+            likes: (comment.likes || 0) + 1,
+
+            likedBy: [...(comment.likedBy || []), uid]
+
+        };
+
+    });
+
+    await updateDoc(
+
+        doc(db, "posts", postId),
+
+        {
+
+            comments
+
+        }
+
+    );
+
+}
+
+// =====================================
+// UNLIKE COMMENT
+// =====================================
+
+export async function unlikeComment(postId, commentId, uid) {
+
+    const post = await getPost(postId);
+
+    if (!post) return;
+
+    const comments = post.comments.map(comment => {
+
+        if (comment.id !== commentId) return comment;
+
+        return {
+
+            ...comment,
+
+            likes: Math.max((comment.likes || 1) - 1, 0),
+
+            likedBy: (comment.likedBy || []).filter(
+
+                item => item !== uid
+
+            )
+
+        };
+
+    });
+
+    await updateDoc(
+
+        doc(db, "posts", postId),
+
+        {
+
+            comments
+
+        }
+
+    );
+
+}
+
+// =====================================
 // UPDATE SEMUA POST MILIK USER
 // =====================================
 

@@ -304,12 +304,18 @@ const finalPosts = posts.map(post => {
 
         });
 
-          
+   
         // =====================================
 // COMMENT
 // =====================================
 
-const { addComment } = await import("../data/posts.js");
+const {
+
+    addComment,
+
+    getComments
+
+} = await import("../data/posts.js");
 
 const modal = document.getElementById("commentModal");
 
@@ -327,13 +333,17 @@ const closeButton = document.getElementById("closeComment");
 
 async function renderComments(postId) {
 
-    const post = await getPost(postId);
+    const comments = await getComments(postId);
 
     commentList.innerHTML = "";
 
-    for (const comment of (post.comments || [])) {
+    for (const comment of comments) {
 
-        const user = await getMember(comment.uid);
+        const user = members.find(
+
+    item => item.uid === comment.uid
+
+);
 
         commentList.innerHTML += `
 
@@ -359,16 +369,24 @@ async function renderComments(postId) {
         <div class="comment-actions">
 
             <button
-                class="comment-like-btn"
-                data-comment="${comment.id}">
 
-                ❤️ ${comment.likes || 0}
+                class="comment-like-btn ${comment.likedBy?.includes(currentUser.uid) ? "liked" : ""}"
+
+                data-id="${comment.id}"
+
+            >
+
+                ❤️ <span>${comment.likes ?? 0}</span>
 
             </button>
 
             <button
+
                 class="comment-reply-btn"
-                data-comment="${comment.id}">
+
+                data-id="${comment.id}"
+
+            >
 
                 💬 Balas
 
@@ -383,6 +401,77 @@ async function renderComments(postId) {
 `;
 
     }
+
+    await bindCommentLike(postId);
+
+}
+
+// =====================================
+// BIND LIKE COMMENT
+// =====================================
+
+async function bindCommentLike(postId) {
+
+    const {
+
+        likeComment,
+
+        unlikeComment,
+
+        getPost
+
+    } = await import("../data/posts.js");
+
+    document.querySelectorAll(".comment-like-btn").forEach(btn => {
+
+        btn.onclick = async () => {
+
+            console.log("LIKE DIKLIK");
+
+            const commentId = btn.dataset.id;
+
+            const post = await getPost(postId);
+
+            const comment = post.comments.find(
+
+                item => item.id === commentId
+
+            );
+
+            if (!comment) return;
+
+        if ((comment.likedBy || []).includes(currentUser.uid)) {
+
+    await unlikeComment(
+
+        postId,
+
+        commentId,
+
+        currentUser.uid
+
+    );
+
+} else {
+
+    await likeComment(
+
+        postId,
+
+        commentId,
+
+        currentUser.uid
+
+    );
+
+}
+
+// Refresh komentar
+await renderComments(postId);
+
+};
+
+});
 
 }
 
@@ -440,30 +529,87 @@ sendButton.onclick = async () => {
 
     if (!text) return;
 
+    // Simpan posisi scroll
+    const currentScroll = window.scrollY;
+
     sendButton.disabled = true;
 
-    sendButton.textContent = "Mengirim...";
+    sendButton.innerHTML = `
 
-    await addComment(
+<i class="fa-solid fa-paper-plane"></i>
 
-        selectedPostId,
+`;
 
-        {
+    const now = Date.now();
 
-            uid: currentUser.uid,
+const tempComment = {
 
-            text,
+    uid: currentUser.uid,
 
-            time: Date.now()
+    text,
 
-        }
+    time: now
 
-    );
+};
 
-    commentInput.value = "";
+// tampilkan langsung ke layar
+commentList.innerHTML += `
 
-    await renderComments(selectedPostId);
+<div class="comment-item">
 
+    <img
+        class="comment-avatar"
+        src="${currentUser.avatar}"
+        draggable="false">
+
+    <div class="comment-content">
+
+        <div class="comment-top">
+
+            <b>${currentUser.fullName}</b>
+
+            <span>Baru saja</span>
+
+        </div>
+
+        <p>${text}</p>
+
+        <div class="comment-actions">
+
+            <button class="comment-like-btn">
+
+                🤍 0
+
+            </button>
+
+            <button class="comment-reply-btn">
+
+                💬 Balas
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+`;
+
+commentList.scrollTop = commentList.scrollHeight;
+
+commentInput.value = "";
+
+// upload ke Firebase di background
+await addComment(
+
+    selectedPostId,
+
+    tempComment
+
+);
+
+    // Update jumlah komentar
     const latest = await getPost(selectedPostId);
 
     const counter = document.querySelector(
@@ -482,17 +628,31 @@ sendButton.onclick = async () => {
 
     }
 
-    setTimeout(() => {
+   // Popup tetap terbuka
 
-        modal.classList.remove("show");
+commentInput.focus();
 
-    }, 400);
+// Scroll ke komentar paling bawah
+commentList.scrollTo({
 
-    selectedPostId = null;
+    top: commentList.scrollHeight,
 
-    sendButton.disabled = false;
+    behavior: "smooth"
 
-    sendButton.textContent = "Kirim";
+});
+
+// Kembalikan posisi feed ke postingan tadi
+window.scrollTo({
+
+    top: currentScroll,
+
+    behavior: "instant"
+
+});
+
+sendButton.disabled = false;
+
+sendButton.innerHTML = "Kirim";
 
 };
 
